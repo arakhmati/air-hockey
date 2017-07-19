@@ -91,17 +91,18 @@ class ActiveCircle:
         self.__pos = Vector.Vector(pos_angle,pos_magnitude)
         self.set_speed(Vector.Vector(0,0))
           
-    # detect collisions
     def collision(self, B, dt):
 
         A = self
-        if A.get_speed_magnitude()==0:
-            (A,B)=(B,A)
 
         S = A.get_speed()-B.get_speed()
 
-        dist = distance( A.get_pos_xy(), B.get_pos_xy())
+        dist = distance(A.get_pos_xy(), B.get_pos_xy())
         sumRadii = A.get_radius() + B.get_radius()
+        
+        if dist > sumRadii:
+            return False
+        
         dist -= sumRadii
 
         if S.get_magnitude()*dt < dist:
@@ -124,7 +125,7 @@ class ActiveCircle:
 
         T = sumRadiiSquared - F
 
-        if T<0:
+        if T < 0:
             return False
 
         dist = D - math.sqrt(T)
@@ -132,7 +133,7 @@ class ActiveCircle:
         if S.get_magnitude()*dt < dist:
             return False
 
-        # collision happens
+        # Collision happened
         N = C.copy()
         N.normalize()
 
@@ -141,15 +142,11 @@ class ActiveCircle:
 
         P = (2*(a1-a2))/(A.get_mass()+B.get_mass())
         newA = A.get_speed() - P*B.get_mass()*N
-        newB = B.get_speed() + P*A.get_mass()*N
         
         A.set_speed(newA)
-        B.set_speed(newB)
         
         if A.get_speed_magnitude()>A.get_max_speed():
             A.set_speed_magnitude(A.get_max_speed())
-        if B.get_speed_magnitude()>B.get_max_speed():
-            B.set_speed_magnitude(B.get_max_speed())
         
         return True
 

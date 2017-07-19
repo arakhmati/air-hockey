@@ -39,15 +39,9 @@ class Environment:
         
         dt = self.clock.tick(60)  
         
-        (mouseX, mouseY) = pygame.mouse.get_pos()
+        (mouse_x, mouse_y) = pygame.mouse.get_pos()
     
-        keys = pygame.key.get_pressed()
-        if keys[ pygame.K_LEFT]: x1 = -1.0    
-        elif keys[ pygame.K_RIGHT]: x1 = 1.0  
-        else: x1 = 0.0                  
-        if keys[pygame. K_UP]: y1 = -1.0          
-        elif keys[ pygame.K_DOWN]: y1 = 1.0       
-        else: y1 = 0.0     
+        keys = pygame.key.get_pressed()  
         if keys[ pygame.K_a]: x2 = -1.0    
         elif keys[ pygame.K_d]: x2 = 1.0  
         else: x2 = 0.0                  
@@ -55,14 +49,13 @@ class Environment:
         elif keys[ pygame.K_s]: y2 = 1.0       
         else: y2 = 0.0
         
-        self.playerMallet.mod(x1, y1, dt)
         self.cpuMallet.mod(x2, y2, dt)
         self.puck.mod(dt)
         
         self.puck.collision(self.playerMallet, dt)
-        self.puck.collision(self.cpuMallet, dt)
+        self.puck.collision(self.cpuMallet,    dt)
         
-        self.playerMallet.move(dt)
+        self.playerMallet.move(dt, mouse_x, mouse_y)
         self.cpuMallet.move(dt)
         result = self.puck.move(dt)
         

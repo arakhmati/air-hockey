@@ -1,6 +1,7 @@
 import pygame
 
 import Puck
+import Vector
 from physics_utils import angle_from_O, distance_from_O, angle, distance
 
 from color_utils import colors
@@ -15,7 +16,7 @@ class Mallet(Puck.Puck):
         self.__point = 0
         self.height = rink.height
         
-        if self.get_player() == 'cpu':
+        if self.get_player() == 'player':
             self.bottom = self.top+self.height-self.get_radius()
             self.top    = self.top+0.5*(self.height)+self.get_radius()
         else:
@@ -52,35 +53,37 @@ class Mallet(Puck.Puck):
         vy += y*self.get_acceleration()*dt
         
         self.set_speed_angle(angle_from_O((vx,vy)))
-        
         new_speed = distance_from_O((vx,vy))
-        if new_speed<=self.get_max_speed():
-            self.set_speed_magnitude (new_speed)
+        self.set_speed_magnitude (min(new_speed, self.get_max_speed()))
 
-    def move(self, dt):
-        touched = False
+    def move(self, dt, mouse_x=0, mouse_y=0):
  
-        new_pos = self.get_pos()+dt*self.get_speed()
+        if self.get_player() == 'player':
+            new_pos = (mouse_x, mouse_y)
+            new_pos_angle = angle_from_O(new_pos)
+            new_pos_magnitude = distance_from_O(new_pos)
+            new_pos = Vector.Vector(new_pos_angle, new_pos_magnitude)
+            npx, npy = new_pos.get_xy()
+            px, py = self.get_pos_xy()
+            vx = npx - px
+            vy = npy - py
+        
+            self.set_speed_angle(angle_from_O((vx,vy)))
+            new_speed = distance_from_O((vx,vy))
+            self.set_speed_magnitude (min(new_speed, self.get_max_speed()))
+        else:
+            new_pos = self.get_pos()+dt*self.get_speed()
         px,py = new_pos.get_xy()
         
         if (px < self.left+self.get_radius()):
-            touched = True
             px = self.left+self.get_radius()
         elif (px > self.right-self.get_radius()):
-            touched = True
             px = self.right-self.get_radius()
         
         if (py < self.top):
-            touched = True
             py = self.top
         elif (py > self.bottom):
-            touched = True
             py = self.bottom
-            
-        if touched:
-            old_pos = self.get_pos_xy()
-            self.set_speed_angle(angle(old_pos,(px,py)))
-            self.set_speed_magnitude(distance(old_pos,(px,py))/dt)
         
         self.set_pos_xy((px,py))
         
