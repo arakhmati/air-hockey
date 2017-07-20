@@ -1,19 +1,20 @@
-import Vector
 import math
+
+from Vector import Vector
 from physics_utils import angle_from_O, distance_from_O, distance
 
-class ActiveCircle:
+class MovingCircle:
 
-    def __init__(self, pos, radius, speed_angle, speed_magnitude, mass, max_speed):
-        pos_angle = angle_from_O(pos)
-        pos_magnitude = distance_from_O(pos)
-        self.__pos = Vector.Vector(pos_angle,pos_magnitude)
+    def __init__(self, pos, rink, radius, mass, max_speed, friction):
+        self.__pos = Vector(angle_from_O(pos), distance_from_O(pos))
         self.__start_pos_xy = pos
         self.__width, self.__height = 0, 0
         self.__radius = radius
-        self.__speed = Vector.Vector(speed_angle,speed_magnitude)
+        self.__speed = Vector(0, 0)
         self.__mass = mass
         self.__max_speed = max_speed
+        self.__friction = friction
+        self.__rink = rink
         
     def get_pos(self):
         return self.__pos
@@ -47,6 +48,12 @@ class ActiveCircle:
 
     def get_max_speed(self):
         return self.__max_speed
+    
+    def get_friction(self):
+        return self.__friction
+    
+    def get_rink(self):
+        return self.__rink
 
     def set_pos(self,pos):
         self.__pos = pos
@@ -63,7 +70,7 @@ class ActiveCircle:
     def set_radius(self,radius):
         self.__radius = radius
 
-    def set_speed(self,speed):
+    def set_speed(self, speed):
         self.__speed = speed
 
     def set_speed_angle(self,angle):
@@ -83,34 +90,41 @@ class ActiveCircle:
         
     def get_start_pos_xy(self):
         return self.__start_pos_xy
+    
+    def set_friction(self,friction):
+        self.__friction = friction
         
     def reset(self):
         pos = self.get_start_pos_xy()
         pos_angle = angle_from_O(pos)
         pos_magnitude = distance_from_O(pos)
-        self.__pos = Vector.Vector(pos_angle,pos_magnitude)
-        self.set_speed(Vector.Vector(0,0))
+        self.__pos = Vector(pos_angle,pos_magnitude)
+        self.set_speed(Vector(0,0))        
+                
+    def friction( self, dt):
+        if self.get_speed_magnitude()>0:
+            self.set_speed_magnitude(self.get_speed_magnitude()-self.get_friction()*dt)
+        if self.get_speed_magnitude()<0:
+            self.set_speed_magnitude(0)
           
     def collision(self, B, dt):
 
-        A = self
 
-        S = A.get_speed()-B.get_speed()
-
-        dist = distance(A.get_pos_xy(), B.get_pos_xy())
-        sumRadii = A.get_radius() + B.get_radius()
+        dist = distance(self.get_pos_xy(), B.get_pos_xy())
+        sumRadii = self.get_radius() + B.get_radius()
         
         if dist > sumRadii:
             return False
         
         dist -= sumRadii
+        S = self.get_speed()-B.get_speed()
 
         if S.get_magnitude()*dt < dist:
             return False
 
         N = S.copy()
         N.normalize()
-        C = B.get_pos()-A.get_pos()
+        C = B.get_pos()-self.get_pos()
         D = N*C
 
         if D <= 0:
@@ -134,19 +148,19 @@ class ActiveCircle:
             return False
 
         # Collision happened
-        N = C.copy()
+        N = B.get_pos()-self.get_pos()
         N.normalize()
 
-        a1 = A.get_speed()*N
+        a1 = self.get_speed()*N
         a2 = B.get_speed()*N
 
-        P = (2*(a1-a2))/(A.get_mass()+B.get_mass())
-        newA = A.get_speed() - P*B.get_mass()*N
+        P = (2*(a1-a2))/(self.get_mass()+B.get_mass())
+        newA = self.get_speed() - P*B.get_mass()*N
         
-        A.set_speed(newA)
+        self.set_speed(newA)
         
-        if A.get_speed_magnitude()>A.get_max_speed():
-            A.set_speed_magnitude(A.get_max_speed())
+        if self.get_speed_magnitude()>self.get_max_speed():
+            self.set_speed_magnitude(self.get_max_speed())
         
         return True
 

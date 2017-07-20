@@ -2,8 +2,8 @@ import pygame
 
 from Rink import Rink
 from Puck import Puck
-from Mallet import Mallet
-from Goal import Goal
+from Mallet import KeyboardMallet, MouseMallet
+from GoalPosts import GoalPosts
 
 from color_utils import colors
         
@@ -11,63 +11,46 @@ from color_utils import colors
 class Environment:
     
     def __init__(self, width, height, margin):
-        self.width = width
-        self.height = height
-        self.margin = margin
+        self.__width = width
+        self.__height = height
+        self.__margin = margin
         
-        self.elasticity = 0.75
+        self.__center_x = self.__width // 2
+        self.__center_y = self.__height // 2
         
-        self.rink = Rink(width, height, margin)
+        self.__elasticity = 0.75
         
+        self.__rink = Rink(self.__width, self.__height, self.__margin)
         
-        self.playerGoal = Goal(250, 685)
-        self.cpuGoal    = Goal(250, 15)
+        self.__goal_posts = GoalPosts(self.__center_x, self.__height, self.__margin)
         
-        self.puck = Puck((250, 350), self.rink, self.playerGoal)
+        self.__puck = Puck((self.__center_x, self.__center_y), self.__rink, self.__goal_posts)
         
-        self.playerMallet = Mallet((250, 650), self.rink, 'player')
-        self.cpuMallet    = Mallet((250, 50),  self.rink, 'cpu')
+        self.__mallet_1  = MouseMallet((self.__center_x,    self.__height-self.__margin*2), self.__rink, 'top')
+        self.__mallet_2  = KeyboardMallet((self.__center_x, self.__margin*2),  self.__rink, 'bottom')
         
-        self.score = {'player': 0, 'cpu': 0}
-        
-        self.screen = pygame.display.set_mode((width, height))
+        self.__screen = pygame.display.set_mode((self.__width, self.__height))
         pygame.display.set_caption("Air Hockey")
         
-        self.clock = pygame.time.Clock()
+        self.__clock = pygame.time.Clock()
         
     def update(self): 
         
-        dt = self.clock.tick(60)  
+        dt = self.__clock.tick(60)  
         
-        (mouse_x, mouse_y) = pygame.mouse.get_pos()
-    
-        keys = pygame.key.get_pressed()  
-        if keys[ pygame.K_a]: x2 = -1.0    
-        elif keys[ pygame.K_d]: x2 = 1.0  
-        else: x2 = 0.0                  
-        if keys[ pygame.K_w]: y2 = -1.0          
-        elif keys[ pygame.K_s]: y2 = 1.0       
-        else: y2 = 0.0
+        for mallet in [self.__mallet_1, self.__mallet_2]:
+            self.__puck.collision(mallet, dt)
         
-        self.cpuMallet.mod(x2, y2, dt)
-        self.puck.mod(dt)
+        for mallet in [self.__puck, self.__mallet_1, self.__mallet_2]:
+            mallet.move(dt)
         
-        self.puck.collision(self.playerMallet, dt)
-        self.puck.collision(self.cpuMallet,    dt)
-        
-        self.playerMallet.move(dt, mouse_x, mouse_y)
-        self.cpuMallet.move(dt)
-        result = self.puck.move(dt)
-        
-        if result != '':
-            self.puck.reset()
-            self.cpuMallet.reset()
-            self.playerMallet.reset()
-            self.score[result] += 1
-            print(self.score)
+        if self.__goal_posts.scored():
+            for obj in [self.__puck, self.__mallet_1, self.__mallet_2]:
+                obj.reset()
+            print(self.__goal_posts.get_score())
             
-        self.screen.fill(colors['black'])
-        for drawable in [self.rink, self.puck, self.playerMallet, self.cpuMallet, self.playerGoal, self.cpuGoal]:
-            drawable.draw(self.screen)
+        self.__screen.fill(colors['black'])
+        for drawable in [self.__rink, self.__puck, self.__mallet_1, self.__mallet_2, self.__goal_posts]:
+            drawable.draw(self.__screen)
         pygame.display.flip()
     
