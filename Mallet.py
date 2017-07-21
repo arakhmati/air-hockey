@@ -14,7 +14,7 @@ import numpy as np
 
 
 class Mallet(MovingCircle, ABC):
-    def __init__( self, player, rink, puck, color=colors['red'], radius=20, mass=10, max_speed=0.6, friction=0.0001, acceleration=0.0025):
+    def __init__( self, player, rink, puck, color=colors['red'], radius=20, mass=20, max_speed=0.6, friction=0.0001, acceleration=0.0025):
         
         self.__player = player
         if self.get_player() == 'top':
@@ -196,10 +196,9 @@ class MouseMallet(Mallet):
         
 class CpuMallet(Mallet):
     
-    def __init__( self, player, rink, puck, color=colors['red'], radius=20, mass=10, max_speed=0.6, friction=0.0001, acceleration=0.0025):
+    def __init__( self, player, rink, puck, color=colors['red'], radius=20, mass=20, max_speed=0.6, friction=0.0001, acceleration=0.0025):
         super().__init__(player, rink, puck, color, radius, mass, max_speed, friction, acceleration)
-        self.__reachable_top_bound    = self.get_top_bound()   + self.get_radius()
-        print(self.__reachable_top_bound)
+        self.__reachable_top_bound    = self.get_top_bound()    - self.get_radius()
         self.__reachable_bottom_bound = self.get_bottom_bound() + self.get_radius()
         self.__range = self.get_rink().get_width() // 4
         
@@ -218,62 +217,36 @@ class CpuMallet(Mallet):
         touched = False
         self.friction(dt)
         
-        goal_line = np.array([(200, 670), (300, 670)])
-        
-        old_px, old_py = self.get_pos_xy()
-        px, py = old_px, old_py
-        vx, vy = self.get_speed_xy()
-        
-        puck = self.get_puck()
-        puck_px, puck_py = puck.get_pos_xy()
-        puck_vx, puck_vy = puck.get_speed_xy()
-        
-        intersects = self.intersects(np.array((puck_px, puck_py)), np.array((puck_vx, puck_vy)), goal_line)
-        if intersects != None:
-#            print('intersects')
-            goal_px, goal_py = intersects[0]
-        else:
-            goal_px, goal_py = (250, 670)
-        
-        x, y = 0, 0
-        reachable = self.__reachable_top_bound <= puck_py <=  self.__reachable_bottom_bound
-        if not reachable:
-            self.set_acceleration(0.0025)
-            x = random.randrange(-1, 2, 1)
-            y = random.randrange(-1, 2, 1)
+        if self.get_player() == 'top':
+            goal_line = np.array([(200, 30), (300, 30)])
             
-            if x == -1 and px < self.get_rink().get_left()   + self.get_radius() + self.__range*2: x = 1
-            elif x == 1 and px > self.get_rink().get_right() - self.get_radius() - self.__range*2: x = -1
-            if y == -1 and py < self.get_bottom_bound() - self.__range: y = 1
+            old_px, old_py = self.get_pos_xy()
+            px, py = old_px, old_py
+            vx, vy = self.get_speed_xy()
             
-        else:
-            if puck_vy < 0:
-                self.set_acceleration(0.015)
-                if puck_px < px:
-                    x = -1
-                if puck_px > px:
-                    x = 1
-                if puck_py < py:
-                    y = -1
-                if puck_py > py:
-                    y = 1
+            puck = self.get_puck()
+            puck_px, puck_py = puck.get_pos_xy()
+            puck_vx, puck_vy = puck.get_speed_xy()
+            
+            intersects = self.intersects(np.array((puck_px, puck_py)), np.array((puck_vx, puck_vy)), goal_line)
+            if intersects != None:
+                goal_px, goal_py = intersects[0]
             else:
-                too_fast = puck.get_speed_magnitude() > 0.8 * puck.get_max_speed()
+                goal_px, goal_py = (250, 30)
+            
+            x, y = 0, 0
+            reachable = self.__reachable_top_bound <= puck_py <=  self.__reachable_bottom_bound
+            if not reachable:
+                self.set_acceleration(0.0025)
+                x = random.randrange(-1, 2, 1)
+                y = random.randrange(-1, 2, 1)
                 
-                if too_fast:
-                    self.set_acceleration(0.008)
-                    diff_px = goal_px - px
-                    if abs(diff_px) < 5: x = 0
-                    elif diff_px > 0:    x = 1
-                    else:                x = -1
-                    x *= min(abs(diff_px)/20, 1)
+                if x == -1 and px < self.get_rink().get_left()   + self.get_radius() + self.__range*2: x = 1
+                elif x == 1 and px > self.get_rink().get_right() - self.get_radius() - self.__range*2: x = -1
+                if y == 1 and py > self.get_top_bound() + self.__range: y = -1
                 
-                    diff_py = goal_py - py
-                    if abs(diff_py) < 5: y = 0
-                    elif diff_py > 0:    y = 1
-                    else:                y = -1
-                    y *= min(abs(diff_py)/20, 1)
-                else:
+            else:
+                if puck_vy > 0:
                     self.set_acceleration(0.015)
                     if puck_px < px:
                         x = -1
@@ -283,6 +256,100 @@ class CpuMallet(Mallet):
                         y = -1
                     if puck_py > py:
                         y = 1
+                else:
+                    too_fast = puck.get_speed_magnitude() > 0.8 * puck.get_max_speed()
+                    
+                    if too_fast:
+                        self.set_acceleration(0.008)
+                        diff_px = goal_px - px
+                        if abs(diff_px) < 5: x = 0
+                        elif diff_px > 0:    x = 1
+                        else:                x = -1
+                        x *= min(abs(diff_px)/20, 1)
+                    
+                        diff_py = goal_py - py
+                        if abs(diff_py) < 5: y = 0
+                        elif diff_py > 0:    y = 1
+                        else:                y = -1
+                        y *= min(abs(diff_py)/20, 1)
+                    else:
+                        self.set_acceleration(0.015)
+                        if puck_px < px:
+                            x = -1
+                        if puck_px > px:
+                            x = 1
+                        if puck_py < py:
+                            y = -1
+                        if puck_py > py:
+                            y = 1
+            
+        else:
+        
+            goal_line = np.array([(200, 670), (300, 670)])
+            
+            old_px, old_py = self.get_pos_xy()
+            px, py = old_px, old_py
+            vx, vy = self.get_speed_xy()
+            
+            puck = self.get_puck()
+            puck_px, puck_py = puck.get_pos_xy()
+            puck_vx, puck_vy = puck.get_speed_xy()
+            
+            intersects = self.intersects(np.array((puck_px, puck_py)), np.array((puck_vx, puck_vy)), goal_line)
+            if intersects != None:
+    #            print('intersects')
+                goal_px, goal_py = intersects[0]
+            else:
+                goal_px, goal_py = (250, 670)
+            
+            x, y = 0, 0
+            reachable = self.__reachable_top_bound <= puck_py <=  self.__reachable_bottom_bound
+            if not reachable:
+                self.set_acceleration(0.0025)
+                x = random.randrange(-1, 2, 1)
+                y = random.randrange(-1, 2, 1)
+                
+                if x == -1 and px < self.get_rink().get_left()   + self.get_radius() + self.__range*2: x = 1
+                elif x == 1 and px > self.get_rink().get_right() - self.get_radius() - self.__range*2: x = -1
+                if y == -1 and py < self.get_bottom_bound() - self.__range: y = 1
+                
+            else:
+                if puck_vy < 0:
+                    self.set_acceleration(0.015)
+                    if puck_px < px:
+                        x = -1
+                    if puck_px > px:
+                        x = 1
+                    if puck_py < py:
+                        y = -1
+                    if puck_py > py:
+                        y = 1
+                else:
+                    too_fast = puck.get_speed_magnitude() > 0.8 * puck.get_max_speed()
+                    
+                    if too_fast:
+                        self.set_acceleration(0.008)
+                        diff_px = goal_px - px
+                        if abs(diff_px) < 5: x = 0
+                        elif diff_px > 0:    x = 1
+                        else:                x = -1
+                        x *= min(abs(diff_px)/20, 1)
+                    
+                        diff_py = goal_py - py
+                        if abs(diff_py) < 5: y = 0
+                        elif diff_py > 0:    y = 1
+                        else:                y = -1
+                        y *= min(abs(diff_py)/20, 1)
+                    else:
+                        self.set_acceleration(0.015)
+                        if puck_px < px:
+                            x = -1
+                        if puck_px > px:
+                            x = 1
+                        if puck_py < py:
+                            y = -1
+                        if puck_py > py:
+                            y = 1
             
                 
         vx,vy = self.get_speed_xy()

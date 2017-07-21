@@ -32,7 +32,7 @@ class Environment:
         
         self.__puck = Puck((self.__center_x, self.__center_y), self.__rink, self.__goal_posts)
         
-        self.__mallet_1  = MouseMallet('top', self.__rink, self.__puck)
+        self.__mallet_1  = CpuMallet('top', self.__rink, self.__puck)
         self.__mallet_2  = CpuMallet('bottom', self.__rink, self.__puck)
         
         
