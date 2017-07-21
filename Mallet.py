@@ -1,13 +1,12 @@
 import pygame
 import random
 from abc import ABC, abstractmethod
+import numpy as np
 
 from Vector import Vector
 from MovingCircle import MovingCircle
 from physics_utils import angle_from_O, distance_from_O, angle, distance
 from color_utils import colors
-
-import numpy as np
 
 #class MalletFactory:
 #    def
@@ -297,7 +296,6 @@ class CpuMallet(Mallet):
             
             intersects = self.intersects(np.array((puck_px, puck_py)), np.array((puck_vx, puck_vy)), goal_line)
             if intersects != None:
-    #            print('intersects')
                 goal_px, goal_py = intersects[0]
             else:
                 goal_px, goal_py = (250, 670)
@@ -380,7 +378,7 @@ class CpuMallet(Mallet):
             
         if self.overlaps():
             x = (old_px - puck_px) > 0
-            px = old_px + x * 5
+            px = old_px + x * 10
                 
             y = (old_py - puck_py) > 0
             py = old_py + y * 5
@@ -393,6 +391,8 @@ class CpuMallet(Mallet):
             self.set_speed_magnitude(distance(old_pos,(px,py))/dt)
         
         self.set_pos_xy((px, py))
+        
+        return x, y
 
         
     

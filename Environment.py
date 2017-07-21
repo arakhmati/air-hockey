@@ -44,11 +44,12 @@ class Environment:
         
         dt = self.__clock.tick(60)  
         
-        for mallet in [self.__mallet_1, self.__mallet_2]:
-            self.__puck.collision(mallet, dt)
+        self.__puck.collision(self.__mallet_1, dt)
+        self.__puck.collision(self.__mallet_2, dt)
         
-        for obj in [self.__puck, self.__mallet_1, self.__mallet_2]:
-            obj.move(dt)
+        self.__puck.move(dt)
+        self.__mallet_1.move(dt)
+        x, y = self.__mallet_2.move(dt)
         
         if self.__goal_posts.scored():
             for obj in [self.__puck, self.__mallet_1, self.__mallet_2]:
@@ -65,4 +66,5 @@ class Environment:
         textrect.centery = self.__screen.get_rect().centery
         self.__screen.blit(text, (180, self.__height + 20))
         pygame.display.flip()
+        return pygame.image, x, y, self.__screen
     
