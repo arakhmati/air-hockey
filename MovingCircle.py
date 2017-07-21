@@ -106,25 +106,29 @@ class MovingCircle:
             self.set_speed_magnitude(self.get_speed_magnitude()-self.get_friction()*dt)
         if self.get_speed_magnitude()<0:
             self.set_speed_magnitude(0)
+            self.set_speed_angle(0)
           
     def collision(self, B, dt):
+        A = self
+        if A.get_speed_magnitude()==0:
+            (A,B)=(B,A)
 
+        S = A.get_speed()-B.get_speed()
 
-        dist = distance(self.get_pos_xy(), B.get_pos_xy())
-        sumRadii = self.get_radius() + B.get_radius()
+        dist = distance( A.get_pos_xy(), B.get_pos_xy())
+        sumRadii = A.get_radius() + B.get_radius()
         
         if dist > sumRadii:
             return False
         
         dist -= sumRadii
-        S = self.get_speed()-B.get_speed()
 
         if S.get_magnitude()*dt < dist:
             return False
 
         N = S.copy()
         N.normalize()
-        C = B.get_pos()-self.get_pos()
+        C = B.get_pos()-A.get_pos()
         D = N*C
 
         if D <= 0:
@@ -139,7 +143,7 @@ class MovingCircle:
 
         T = sumRadiiSquared - F
 
-        if T < 0:
+        if T<0:
             return False
 
         dist = D - math.sqrt(T)
@@ -148,19 +152,23 @@ class MovingCircle:
             return False
 
         # Collision happened
-        N = B.get_pos()-self.get_pos()
+        N = C.copy()
         N.normalize()
 
-        a1 = self.get_speed()*N
+        a1 = A.get_speed()*N
         a2 = B.get_speed()*N
 
-        P = (2*(a1-a2))/(self.get_mass()+B.get_mass())
-        newA = self.get_speed() - P*B.get_mass()*N
+        P = (2*(a1-a2))/(A.get_mass()+B.get_mass())
+        newA = A.get_speed() - P*B.get_mass()*N
+        newB = B.get_speed() + P*A.get_mass()*N
         
-        self.set_speed(newA)
+        A.set_speed(newA)
+        B.set_speed(newB)
         
-        if self.get_speed_magnitude()>self.get_max_speed():
-            self.set_speed_magnitude(self.get_max_speed())
+        if A.get_speed_magnitude()>A.get_max_speed():
+            A.set_speed_magnitude(A.get_max_speed())
+        if B.get_speed_magnitude()>B.get_max_speed():
+            B.set_speed_magnitude(B.get_max_speed())
         
         return True
 

@@ -2,7 +2,7 @@ import pygame
 
 from Environment import Environment
 
-env = Environment(width=650, height=1000, margin=25)
+env = Environment(width=500, height=700, margin=25)
   
 done = False
 while not done:

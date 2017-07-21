@@ -36,7 +36,7 @@ class Rink:
     def get_height(self):
         return self.__height
     
-    def get_cneter_x(self):
+    def get_center_x(self):
         return self.__center_x
     
     def get_center_y(self):
