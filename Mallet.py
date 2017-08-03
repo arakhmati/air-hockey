@@ -60,8 +60,6 @@ class Mallet(MovingCircle, ABC):
     def draw( self, screen):
         x, y = self.get_pos().get_xy()
         pygame.draw.circle(screen, self.__color,   [int(x), int(y)], self.get_radius(), 0)
-        pygame.draw.circle(screen, colors['black'], [int(x), int(y)], self.get_radius(), 1)
-        pygame.draw.circle(screen, colors['black'], [int(x), int(y)], 5,  0)
     
     @abstractmethod
     def move(self, dt):

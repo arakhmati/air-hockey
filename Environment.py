@@ -35,12 +35,13 @@ class Environment:
         self.__mallet_1  = CpuMallet('top', self.__rink, self.__puck)
         self.__mallet_2  = CpuMallet('bottom', self.__rink, self.__puck)
         
+        self.zero_count = 0 
         
         pygame.font.init()
 #        self.__font = pygame.font.SysFont("Comic Sans MS", 20)
         
         
-    def update(self): 
+    def update(self, i, new_game): 
         
         dt = self.__clock.tick(60)  
         
@@ -50,6 +51,14 @@ class Environment:
         self.__puck.move(dt)
         self.__mallet_1.move(dt)
         x, y = self.__mallet_2.move(dt)
+        
+        pygame.image.save(self.__screen, new_game + '/%08d_%d_%d.jpg' % (i, x, y))
+        
+        
+        if x == 0 and y == 0:
+            self.zero_count += 1
+        else:
+            self.zero_count = 0
         
         if self.__goal_posts.scored():
             for obj in [self.__puck, self.__mallet_1, self.__mallet_2]:
@@ -66,5 +75,5 @@ class Environment:
         textrect.centery = self.__screen.get_rect().centery
         self.__screen.blit(text, (180, self.__height + 20))
         pygame.display.flip()
-        return pygame.image, x, y, self.__screen
+        return self.zero_count
     
