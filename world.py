@@ -31,6 +31,8 @@ class World(object):
         return contact
             
     def update(self, dt, screen):
+        for body in self.bodies:
+            body.draw(screen)
         
         for body in self.bodies:
             body.clear_accumulators()
@@ -38,7 +40,6 @@ class World(object):
         self.forces.update_forces(dt)
         
         for body in self.bodies:
-            body.draw(screen)
             body.integrate(dt)
             
         for i in range(len(self.bodies)):
