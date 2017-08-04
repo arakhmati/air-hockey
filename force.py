@@ -4,6 +4,31 @@ from vector import Vector
 
 DEFAULT_FACTOR = 1/50
 
+class ForceRegistry(object):
+    class Registry(object):
+        def __init__(self, rigid_body, force_generator):
+            self.rigid_body = rigid_body
+            self.force_generator = force_generator
+    
+    def __init__(self):
+        self.registrations = set()
+    
+    def add(self, rigid_body, force_generator):
+        self.registrations.add(self.Registry(rigid_body, force_generator))
+        
+    def remove(self, rigid_body, force_generator):
+        for registration in self.registrations:
+            if registration.particle == rigid_body and registration.force_generator == force_generator:
+                self.registrations.remove(registration)
+                break
+        
+    def update_forces(self, dt):
+        for registration in self.registrations:
+            registration.force_generator.update_force(registration.rigid_body, dt)
+                
+    def clear(self):
+        self.registrations = {}
+
 class ForceGenerator(ABC):
     def __init__(self, factor=DEFAULT_FACTOR):
         self.factor = factor
@@ -12,10 +37,13 @@ class ForceGenerator(ABC):
     def update_force(self, rigid_body, dt):
         pass
     
-class ConstantForce(ForceGenerator):
-    def __init__(self, force):
+class InputForce(ForceGenerator):
+    def __init__(self):
         super().__init__()
-        self.force = Vector(force)
+        self.force = Vector()
+        
+    def set_force(self, force):
+        self.force = Vector(force) * self.factor
         
     def update_force(self, rigid_body, dt):
         rigid_body.add_force(self.force)
@@ -61,28 +89,3 @@ class KeyboardForce(ForceGenerator):
             
         self.force =  Vector([x*self.factor, y*self.factor])
         rigid_body.add_force(self.force)
-    
-class ForceRegistry(object):
-    class Registry(object):
-        def __init__(self, rigid_body, force_generator):
-            self.rigid_body = rigid_body
-            self.force_generator = force_generator
-    
-    def __init__(self):
-        self.registrations = set()
-    
-    def add(self, rigid_body, force_generator):
-        self.registrations.add(self.Registry(rigid_body, force_generator))
-        
-    def remove(self, rigid_body, force_generator):
-        for registration in self.registrations:
-            if registration.particle == rigid_body and registration.force_generator == force_generator:
-                self.registrations.remove(registration)
-                break
-        
-    def update_forces(self, dt):
-        for registration in self.registrations:
-            registration.force_generator.update_force(registration.rigid_body, dt)
-                
-    def clear(self):
-        self.registrations = {}
