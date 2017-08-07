@@ -32,49 +32,62 @@ class World(object):
 
     @staticmethod
     def corner_collision(body, screen):
-        p0 = Vector([25,  575]) 
-        p1 = Vector([25,  675])
-        p2 = Vector([125, 675])
-        
-        x0, y0 = p0.get_xy()
-        x1, y1 = p1.get_xy()
-        x2, y2 = p2.get_xy()
-        
-        step = 0.1
-        points = [p0]
-        # Generate Bezier
-        for ratio in np.arange(0.0, 1.0, step):
-            distance = (p1 - p0)
-            np0 = p0 + distance * ratio
-            distance = (p2 - p1)
-            np1 = p1 + distance * ratio
-            points.append(np0 + (np1 - np0)*ratio)
-        points.append(p2)
+        for i in range(4):
+            if i == 0:
+                p0 = Vector([125, 25]) 
+                p1 = Vector([25,  25])
+                p2 = Vector([25, 125])
             
-        collision = False
-        for i in range(len(points)-1):
-            pygame.draw.line(screen, (0, 0, 0), points[i].get_xy(), points[i+1].get_xy(), 5)
+            elif i == 1:
+                p0 = Vector([475, 125]) 
+                p1 = Vector([475, 25])
+                p2 = Vector([375, 25])
+#                continue
             
-            ac = points[i] - body.position
-            ab = points[i] - points[i+1]
-            if (ac.cross(ab) / ab.magnitude()) < body.radius:
-                collision = True
+            elif i == 2:
+                p0 = Vector([375, 675]) 
+                p1 = Vector([475, 675])
+                p2 = Vector([475, 575])
+#                continue
+            
+            elif i == 3:
+                p0 = Vector([25,  575]) 
+                p1 = Vector([25,  675])
+                p2 = Vector([125, 675])
+            
+            x0, y0 = p0.get_xy()
+            x1, y1 = p1.get_xy()
+            x2, y2 = p2.get_xy()
+            
+            step = 0.1
+            points = []
+            # Generate Bezier
+            for ratio in np.arange(0.0, 1.0, step):
+                distance = (p1 - p0)
+                np0 = p0 + distance * ratio
+                distance = (p2 - p1)
+                np1 = p1 + distance * ratio
+                points.append(np0 + (np1 - np0)*ratio)
+            points.append(p2)
                 
-                r = points[i] - points[i+1]
-                x, y = r.get_xy()
+            collision = False
+            for i in range(len(points)-1):
+                pygame.draw.line(screen, (0, 0, 0), points[i].get_xy(), points[i+1].get_xy(), 5)
+                dv = points[i+1] - points[i]
+                dv.normalize()
+                dx, dy = dv.get_xy()
+    #            print(points[i+1], points[i])
+    #            print(-dy, dx)
+                print(dy, -dx)
+                normal = Vector([dy, -dx])
                 
-                if y == 0:
-                    a, b = 1, 0
-                if x == 0:
-                    a, b = 0, 1
-                else:
-                    a = x / np.sqrt(x*x+y*y)
-                    b = 1 - a
+                ac = points[i] - body.position
+                ab = points[i] - points[i+1]
+                if (ac.cross(ab) / ab.magnitude()) < body.radius:
+                    collision = True
                     
-                body.position += Vector([y, x])
-                body.velocity.mul_x(body.wall_restitution * a)
-                body.velocity.mul_y(body.wall_restitution * b)
-#        print(collision)
+    #                Ri - 2 N (Ri . N)
+                    body.velocity = body.velocity - normal * (body.velocity * normal) * 2
             
         
             
@@ -168,6 +181,7 @@ if __name__ == "__main__":
         env.update(dt, screen)
         
         pygame.display.update()
+#        done = True
     
     
     pygame.quit ()  
