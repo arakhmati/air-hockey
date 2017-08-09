@@ -1,124 +1,131 @@
 import pygame
+import numpy as np
 
 from vector import Vector
-import numpy as np
 from circle import Puck, Mallet
 from force import ForceRegistry, RandomForce, KeyboardForce, InputForce
 from contact import Contact
 from ai import RuleBasedAI, MachineLearningAI
+from line import Line
           
 class World(object):
     def __init__(self):
-        self.bodies = []
-#        self.bodies = [Puck([250, 350], 25), Mallet([250, 125], 25), Mallet([250, 375], 25)]
+        
+
+######### Add Static Objects ########################################################################
+        # Points must be right to left or top to bottom        
+
+        # Add Walls
+        self.top_left_wall     = Line([125,  25], [200,  25])
+        self.top_right_wall    = Line([300,  25], [375,  25])
+        self.bottom_left_wall  = Line([125, 675], [200, 675])
+        self.bottom_right_wall = Line([300, 675], [375, 675])
+        self.left_wall         = Line([ 25, 125], [ 25, 575])
+        self.right_wall        = Line([475, 125], [475, 575])
+        # Add Corners
+        self.top_left_corner     = Line.generate_bezier_curve([[125,  25], [ 25,  25], [ 25,  125]])
+        self.top_right_corner    = Line.generate_bezier_curve([[475, 125], [475,  25], [375,   25]])
+        self.bottom_left_corner  = Line.generate_bezier_curve([[ 25, 575], [ 25, 675], [125,  675]])
+        self.bottom_right_corner = Line.generate_bezier_curve([[375, 675], [475, 675], [475,  575]])
+        
+        self.walls = [self.top_left_wall, self.top_right_wall,
+                      self.bottom_left_wall, self.bottom_right_wall,
+                      self.left_wall, self.right_wall,
+                      self.top_left_corner, self.top_right_corner,
+                      self.bottom_left_corner, self.bottom_right_corner]
+        import collections
+        def flatten(x):
+            if isinstance(x, collections.Iterable):
+                return [a for i in x for a in flatten(i)]
+            else:
+                return [x]
+        self.walls = flatten(self.walls)
+        
+######### Add Dynamic Objects #######################################################################
+        puck          = Puck([250, 350], 25)
+        top_mallet    = Mallet([250, 125], 25)
+        bottom_mallet = Mallet([175, 575], 25)
+        
         
 #        self.ai = MachineLearningAI(self.bodies[2], self.bodies[0])
         
-        for i in range(125, 700, 600):
-            for j in range(125, 900, 700):
-                import random
-                if i == 125 and j == 125:
-                    self.bodies.append(Mallet((i, j), 25))
-                else:
-                    self.bodies.append(Mallet((i, j), 25) if random.randint(0,1) == 0 else Puck((i, j), 25))
         
 #        self.aiforce = InputForce()
         self.forces = ForceRegistry()
-#        self.forces.add(self.bodies[2], self.aiforce)
-        self.forces.add(self.bodies[0], KeyboardForce())
-        for body in self.bodies[1:]:
-            if isinstance(body, Mallet):
-                self.forces.add(body, RandomForce())
+#        self.forces.add(bottom_mallet, self.aiforce)
+        self.forces.add(bottom_mallet, KeyboardForce())
+        self.forces.add(top_mallet, RandomForce())
+                
+        self.bodies = [puck, top_mallet, bottom_mallet]
 
     @staticmethod
-    def corner_collision(body, screen):
-        for i in range(4):
-            if i == 0:
-                p0 = Vector([125, 25]) 
-                p1 = Vector([25,  25])
-                p2 = Vector([25, 125])
+    def circle_line_collision(body, line):
+        seg_a = line.p1
+        seg_b = line.p2
+        circ_pos = body.position
+        
+        seg_v = seg_b - seg_a        
+        pt_v = circ_pos - seg_a
+        
+        proj_mag = pt_v * seg_v.normalize()
+        
+#        print(proj_mag)
+        
+#        if proj_mag <= 0:
+#            closest = seg_a
+#        elif proj_mag >= seg_v.magnitude():
+#            closest = seg_b
+#        else:
+        proj_v = seg_v.normalize() * proj_mag
+        closest = seg_a + proj_v
+        
+        x, y = closest.get_xy()
+        x1, y1 = seg_a.get_xy()
+        x2, y2 = seg_b.get_xy()
+        
+        if x1 - x2 > 0:
+            x = min(x, x1)
+            x = max(x, x2)
+        else:
+            x = max(x, x1)
+            x = min(x, x2)
+        
+        if y1 - y2 > 0:
+            y = min(y, y1)
+            y = max(y, y2)
+        else:
+            y = max(y, y1)
+            y = min(y, y2)
             
-            elif i == 1:
-                p0 = Vector([475, 125]) 
-                p1 = Vector([475, 25])
-                p2 = Vector([375, 25])
-#                continue
-            
-            elif i == 2:
-                p0 = Vector([375, 675]) 
-                p1 = Vector([475, 675])
-                p2 = Vector([475, 575])
-#                continue
-            
-            elif i == 3:
-                p0 = Vector([25,  575]) 
-                p1 = Vector([25,  675])
-                p2 = Vector([125, 675])
-            
-            x0, y0 = p0.get_xy()
-            x1, y1 = p1.get_xy()
-            x2, y2 = p2.get_xy()
-            
-            step = 0.1
-            points = []
-            # Generate Bezier
-            for ratio in np.arange(0.0, 1.0, step):
-                distance = (p1 - p0)
-                np0 = p0 + distance * ratio
-                distance = (p2 - p1)
-                np1 = p1 + distance * ratio
-                points.append(np0 + (np1 - np0)*ratio)
-            points.append(p2)
-                
-            collision = False
-            for i in range(len(points)-1):
-                pygame.draw.line(screen, (0, 0, 0), points[i].get_xy(), points[i+1].get_xy(), 5)
-                dv = points[i+1] - points[i]
-                dv.normalize()
-                dx, dy = dv.get_xy()
-    #            print(points[i+1], points[i])
-    #            print(-dy, dx)
-                print(dy, -dx)
-                normal = Vector([dy, -dx])
-                
-                ac = points[i] - body.position
-                ab = points[i] - points[i+1]
-                if (ac.cross(ab) / ab.magnitude()) < body.radius:
-                    collision = True
-                    
-    #                Ri - 2 N (Ri . N)
-                    body.velocity = body.velocity - normal * (body.velocity * normal) * 2
-            
+        closest = Vector([x, y])
         
             
+        x, y = closest.get_xy()
+        pygame.draw.circle(screen, (0, 255, 0), [int(x), int(y)],  6, 0)
             
+        dist_v = circ_pos - closest
+        if dist_v.magnitude() < body.radius:
+        
+        
+#        ac = line.p1 - body.position
+#        ab = line.p1 - line.p2
+##        print(ac.cross(ab) / ab.magnitude())
+#        if (ac.cross(ab) / ab.magnitude()) < body.radius:
+#            print(line)
             
-         
-        
-             
-    @staticmethod   
-    def wall_collision(body):
-        x, y = body.position.get_xy()
-        if x < 25 + body.radius:
-            body.position.set_x(25 + body.radius)
-            body.velocity.mul_x(body.wall_restitution)
-        elif x > 475 - body.radius:
-            body.position.set_x(475 - body.radius)
-            body.velocity.mul_x(body.wall_restitution)
-        
-        if y < 25 + body.radius:
-            body.position.set_y(25 + body.radius)
-            body.velocity.mul_y(body.wall_restitution)
-        elif y > 675 - body.radius:
-            body.position.set_y(675 - body.radius)
-            body.velocity.mul_y(body.wall_restitution)
+            # Resovle interpenetration
+            direction = (line.p2 - line.p1).normalize()
+            toCenter = body.position - line.p1
+            perpComponent = toCenter - direction * (toCenter *  direction)
+            penetrationDepth = body.radius - perpComponent.magnitude()
+            mvmtToCorrectPosition = perpComponent.normalize() * penetrationDepth
+            body.position += mvmtToCorrectPosition
             
-        
-            
-        
-
+            # Resolve Velocity
+            body.velocity -= line.normal * (body.velocity * line.normal) * 2 * body.wall_restitution
+    
     @staticmethod
-    def inter_body_collision(bodies, dt, restitution=0.9):
+    def circle_circle_collision(bodies, dt, restitution=0.9):
         position_0 = bodies[0].position
         position_1 = bodies[1].position
         total_radius = bodies[0].radius + bodies[1].radius
@@ -148,13 +155,17 @@ class World(object):
         # Move body based 
         for body in self.bodies:
             body.integrate(dt)
-            self.corner_collision(body, screen)
-            self.wall_collision(body)
+            for line in self.walls:
+                self.circle_line_collision(body, line)
+        
+        for line in self.walls:
+            pygame.draw.line(screen, (0, 0, 0), line.p1.get_xy(), line.p2.get_xy(), 5)
+            
             
         for i in range(len(self.bodies)):
             for j in range(i, len(self.bodies)):
                 if i == j: continue
-                self.inter_body_collision((self.bodies[i], self.bodies[j]), dt)
+                self.circle_circle_collision((self.bodies[i], self.bodies[j]), dt)
                 
                     
     
@@ -176,8 +187,8 @@ if __name__ == "__main__":
                 
         dt = clock.tick_busy_loop(60)
         
-        screen.fill((0, 0, 0))
-        pygame.draw.rect(screen, (255, 255, 255), (25, 25, 450, 650), 0)
+        screen.fill((255, 255, 255))
+#        pygame.draw.rect(screen, (255, 255, 255), (25, 25, 450, 650), 0)
         env.update(dt, screen)
         
         pygame.display.update()

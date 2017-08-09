@@ -19,25 +19,16 @@ class Vector(object):
     
     def normalize(self):
         mag = self.magnitude()
-        
         if mag != 0.0:
             self._v /= mag
+        return Vector(self._v)
         
     def __add__(self, vector):
         return Vector(self._v + vector._v)
-    
-    def add(self, vector):
-        self._v += vector._v
+
         
     def __sub__(self, vector):
-        return Vector(self._v - vector._v)
-    
-    def sub(self, vector):
-        self._v -= vector._v
-        
-    def __str__(self):
-        return str(self._v[0]) + ' ' + str(self._v[1])
-    
+        return Vector(self._v - vector._v)    
             
     def __mul__(self, b):
         if isinstance(b, numbers.Number): # scalar
@@ -46,12 +37,9 @@ class Vector(object):
             return self._v.dot(b._v)
         else:
             raise ValueError('Vector can only be multipled by another Vector or a scalar' )
-    
-    def mul(self, scalar):
-        self._v *= scalar
         
-    def cross(self, vector):
-        return np.cross(self._v, vector._v)
+#    def cross(self, vector):
+#        return np.cross(self._v, vector._v)
         
     def __truediv__(self, scalar):
         if isinstance(scalar, numbers.Number):
@@ -80,6 +68,9 @@ class Vector(object):
     
     def mul_y(self, scalar):
         self._v[1] *= scalar
+        
+    def __str__(self):
+        return str(self._v)
         
     def __repr__(self):
         return str(self._v)

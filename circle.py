@@ -16,7 +16,7 @@ class Circle(ABC):
         self.accumulated_forces = Vector()
         
         self.radius = radius
-        self.wall_restitution = -wall_restitution
+        self.wall_restitution = wall_restitution
     
     def set_mass(self, mass):
         self.mass = mass
