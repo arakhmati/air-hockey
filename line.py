@@ -2,6 +2,7 @@ import pygame
 import numpy as np
 
 from vector import Vector
+import dimensions as D
 
 class Line(object):
     
@@ -16,8 +17,8 @@ class Line(object):
 #        print(type(self.p1))
 
         # TODO: make parametric
-        sum_over_edges  = Line._edge_sum(self.p1, Vector([250, 350]))
-        sum_over_edges += Line._edge_sum(Vector([250, 350]), self.p2)
+        sum_over_edges  = Line._edge_sum(self.p1, Vector(D.center))
+        sum_over_edges += Line._edge_sum(Vector(D.center), self.p2)
         sum_over_edges += Line._edge_sum(self.p2, self.p1)
         if sum_over_edges > 0: # Points are clockwise
             self.p1, self.p2 = self.p2, self.p1 # Swap end points to make them counter-clockwise
@@ -28,7 +29,7 @@ class Line(object):
 #        print(self.normal)
         
     @staticmethod
-    def generate_bezier_curve(arc_points, ratio=0.1):
+    def generate_bezier_curve(arc_points, bezier_ratio=0.1):
         if len(arc_points) != 3:
             raise ValueError('Bezier curve can be generated only using 3 points')
             
@@ -44,22 +45,19 @@ class Line(object):
             
         points = []
         # Generate Bezier
-        for r in np.arange(0.0, 1.0, ratio):
+        for ratio in np.arange(0.0, 1.0, D.bezier_ratio):
             distance = (p1 - p0)
-            np0 = p0 + distance * r
+            np0 = p0 + distance * ratio
             distance = (p2 - p1)
-            np1 = p1 + distance * r
-            points.append(np0 + (np1 - np0) * r)
+            np1 = p1 + distance * ratio
+            points.append(np0 + (np1 - np0) * ratio)
         points.append(p2)
         
         lines = []
         for i in range(len(points)-1):
             lines.append(Line(points[i], points[i+1]))          
         
-        return lines
-    
-    def draw(self, screen):
-        pygame.draw.line(screen, (0, 0, 0), self.p1.get_xy(), self.p2.get_xy(), 5)
+        return lines, points
     
     def __repr__(self):
         return str(self.p1) + ' ' + str(self.p2)

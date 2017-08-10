@@ -2,7 +2,7 @@ import pygame
 from abc import ABC, abstractmethod
 from vector import Vector
 
-DEFAULT_FACTOR = 1/50
+import physical_constants as P
 
 class ForceRegistry(object):
     class Registry(object):
@@ -30,7 +30,7 @@ class ForceRegistry(object):
         self.registrations = {}
 
 class ForceGenerator(ABC):
-    def __init__(self, factor=DEFAULT_FACTOR):
+    def __init__(self, factor=P.force_multiplier):
         self.factor = factor
     
     @abstractmethod
@@ -46,7 +46,7 @@ class ControlledForce(ForceGenerator):
         rigid_body.add_force(self.controller.move() * self.factor)
         
 class RandomForce(ForceGenerator):  
-    def __init__(self, factor=DEFAULT_FACTOR):
+    def __init__(self, factor=P.force_multiplier):
         super().__init__(factor)
         self.count = 0
         self.limit = 10
@@ -61,7 +61,7 @@ class RandomForce(ForceGenerator):
         rigid_body.add_force(self.force)
         
 class KeyboardForce(ForceGenerator):  
-    def __init__(self, factor=DEFAULT_FACTOR, player=0):
+    def __init__(self, factor=P.force_multiplier, player=0):
         super().__init__(factor)
         self.player = player
         

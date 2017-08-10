@@ -3,9 +3,10 @@ import numpy as np
 from abc import ABC
 
 from vector import Vector
+import physical_constants as P
     
 class Circle(ABC):
-    def __init__(self, position, radius, borders, mass, wall_restitution, color):
+    def __init__(self, position, radius, borders, color, mass, wall_restitution):
         self.position = Vector(position)
         self._velocity = Vector()
         
@@ -16,7 +17,7 @@ class Circle(ABC):
         self._mass = mass
         self._inverse_mass = 1/float(mass)
         
-        self.friction = 0.9995
+        self.friction = P.friction
         self.accumulated_forces = Vector()
         
         self.radius = radius
@@ -27,8 +28,8 @@ class Circle(ABC):
     def set_velocity(self, velocity):
         magnitude = velocity.magnitude()
         # Limit velocity to prevent the body from escaping its borders
-        if magnitude > 1:
-            velocity /= magnitude
+        if magnitude > P.maximum_speed:
+            velocity *= P.maximum_speed / magnitude
         self._velocity = velocity
         
     def get_velocity(self):
@@ -59,17 +60,9 @@ class Circle(ABC):
         self._velocity = Vector()
         
 class Puck(Circle):
-    def __init__(self, position, radius, borders, mass=1.0, wall_restitution=0.9, color=(0,0,0)):
-        super().__init__(position, radius, borders, mass, wall_restitution, color)
-        
-    def draw(self, screen):
-        x, y = self.position.get_xy()
-        pygame.draw.circle(screen, (0, 0, 0), [int(x), int(y)], self.radius, 0)
+    def __init__(self, position, radius, borders, color):
+        super().__init__(position, radius, borders, color, P.puck_mass, P.puck_wall_restitution)
         
 class Mallet(Circle):
-    def __init__(self, position, radius, borders, mass=15.0, wall_restitution=0.1, color=(255, 0, 0)):
-        super().__init__(position, radius, borders, mass, wall_restitution, color)
-        
-    def draw(self, screen):
-        x, y = self.position.get_xy()
-        pygame.draw.circle(screen, self.color, [int(x), int(y)],  self.radius, 0)
+    def __init__(self, position, radius, borders, color):
+        super().__init__(position, radius, borders, color, P.mallet_mass, P.mallet_wall_restitution)

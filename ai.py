@@ -3,6 +3,8 @@ import numpy as np
 import random
 
 from vector import Vector
+import dimensions as D
+import physical_constants as P
 
 class AI(ABC):
     pass
@@ -38,17 +40,17 @@ class MachineLearningAI(AI):
 #        if intersects != None:
 #            goal_px, goal_py = intersects[0]
 #        else:
-        goal_px, goal_py = (250, 30)
+        goal_px, goal_py = (D.center[0], D.rink_top)
         
         x, y = 0, 0
-        reachable = 25 <= puck_py <=  675
+        reachable = D.rink_top <= puck_py <=  D.center[1]
         if not reachable:
             x = random.randrange(-1, 2, 1)
             y = random.randrange(-1, 2, 1)
             
-            if x == -1 and px < 25  + self.mallet.radius + 100*2: x = 1
-            elif x == 1 and px > 475 - self.mallet.radius - 100*2: x = -1
-            if y == 1 and py > 100: y = -1
+            if x == -1 and px < D.rink_left  + self.mallet.radius + 100*2: x = 1
+            elif x == 1 and px > D.rink_right - self.mallet.radius - 100*2: x = -1
+            if y == 1 and py > (D.center[1] - D.goalpost_length): y = -1
             
         else:
             if puck_vy < 0:
@@ -61,7 +63,7 @@ class MachineLearningAI(AI):
                 if puck_py > py:
                     y = 1
             else:
-                too_fast = puck.get_velocity().magnitude() > 0.3 
+                too_fast = puck.get_velocity().magnitude() > 0.8*P.maximum_speed 
                 
                 if too_fast:
                     diff_px = goal_px - px

@@ -58,7 +58,7 @@ class Collision(object):
         Collision._resolve_circle_circle_interpenetration(dt, bodies, normal, penetration)
         
     @staticmethod
-    def circle_line(body, line, screen=None):        
+    def circle_line(body, line):        
         relative_position = body.position - line.p1
     
         projected_vector = line.direction * (relative_position * line.direction)
@@ -70,12 +70,10 @@ class Collision(object):
         
         # Make sure that closest point lies on the line
         if lx1 - lx2 > 0: cx = max(min(cx, lx1), lx2)
-        else:           cx = min(max(cx, lx1), lx2)
+        else:             cx = min(max(cx, lx1), lx2)
         if ly1 - ly2 > 0: cy = max(min(cy, ly1), ly2)
-        else:           cy = min(max(cy, ly1), ly2)
+        else:             cy = min(max(cy, ly1), ly2)
         closest_point = Vector([cx, cy])
-        if screen is not None:
-            pygame.draw.circle(screen, body.color, [int(cx), int(cy)],  6, 0)
             
         distance = (body.position - closest_point).magnitude()
         if distance < body.radius:
