@@ -1,176 +1,103 @@
 import pygame
 import numpy as np
 
-from vector import Vector
 from circle import Puck, Mallet
-from force import ForceRegistry, RandomForce, KeyboardForce, InputForce
-from contact import Contact
+from force import ForceRegistry, RandomForce, KeyboardForce, ControlledForce
+from collision import Collision
 from ai import RuleBasedAI, MachineLearningAI
 from line import Line
+from score import Score
+import utils
           
 class World(object):
     def __init__(self):
-        
-
-######### Add Static Objects ########################################################################
-        # Points must be right to left or top to bottom        
-
+           
         # Add Walls
-        self.top_left_wall     = Line([125,  25], [200,  25])
-        self.top_right_wall    = Line([300,  25], [375,  25])
-        self.bottom_left_wall  = Line([125, 675], [200, 675])
-        self.bottom_right_wall = Line([300, 675], [375, 675])
-        self.left_wall         = Line([ 25, 125], [ 25, 575])
-        self.right_wall        = Line([475, 125], [475, 575])
-        # Add Corners
-        self.top_left_corner     = Line.generate_bezier_curve([[125,  25], [ 25,  25], [ 25,  125]])
-        self.top_right_corner    = Line.generate_bezier_curve([[475, 125], [475,  25], [375,   25]])
-        self.bottom_left_corner  = Line.generate_bezier_curve([[ 25, 575], [ 25, 675], [125,  675]])
-        self.bottom_right_corner = Line.generate_bezier_curve([[375, 675], [475, 675], [475,  575]])
-        
-        self.walls = [self.top_left_wall, self.top_right_wall,
-                      self.bottom_left_wall, self.bottom_right_wall,
-                      self.left_wall, self.right_wall,
-                      self.top_left_corner, self.top_right_corner,
-                      self.bottom_left_corner, self.bottom_right_corner]
-        import collections
-        def flatten(x):
-            if isinstance(x, collections.Iterable):
-                return [a for i in x for a in flatten(i)]
-            else:
-                return [x]
-        self.walls = flatten(self.walls)
-        
-######### Add Dynamic Objects #######################################################################
-        puck          = Puck([250, 350], 25)
-        top_mallet    = Mallet([250, 125], 25)
-        bottom_mallet = Mallet([175, 575], 25)
-        
-        
-#        self.ai = MachineLearningAI(self.bodies[2], self.bodies[0])
-        
-        
-#        self.aiforce = InputForce()
-        self.forces = ForceRegistry()
-#        self.forces.add(bottom_mallet, self.aiforce)
-        self.forces.add(bottom_mallet, KeyboardForce())
-        self.forces.add(top_mallet, RandomForce())
-                
-        self.bodies = [puck, top_mallet, bottom_mallet]
+        top_wall          = Line([125,  25], [375,  25])
+        bottom_wall       = Line([125, 675], [375, 675])
+        left_wall         = Line([ 25, 125], [ 25, 575])
+        right_wall        = Line([475, 125], [475, 575])
 
-    @staticmethod
-    def circle_line_collision(body, line):
-        seg_a = line.p1
-        seg_b = line.p2
-        circ_pos = body.position
+        top_left_wall     = Line([125,  25], [200,  25])
+        top_right_wall    = Line([300,  25], [375,  25])
+        bottom_left_wall  = Line([125, 675], [200, 675])
+        bottom_right_wall = Line([300, 675], [375, 675])
         
-        seg_v = seg_b - seg_a        
-        pt_v = circ_pos - seg_a
+        center_line       = Line([ 25, 350], [475, 350])
+        # Add Corners
+        top_left_corner     = Line.generate_bezier_curve([[125,  25], [ 25,  25], [ 25,  125]])
+        top_right_corner    = Line.generate_bezier_curve([[475, 125], [475,  25], [375,   25]])
+        bottom_left_corner  = Line.generate_bezier_curve([[ 25, 575], [ 25, 675], [125,  675]])
+        bottom_right_corner = Line.generate_bezier_curve([[375, 675], [475, 675], [475,  575]])
         
-        proj_mag = pt_v * seg_v.normalize()
+        self.walls = utils.flatten_list([
+                      top_left_wall, top_right_wall,
+                      bottom_left_wall, bottom_right_wall,
+                      left_wall, right_wall,
+                      top_left_corner, top_right_corner,
+                      bottom_left_corner, bottom_right_corner])
         
-#        print(proj_mag)
+        self.puck = Puck([250, 350], 25,
+                          utils.flatten_list([
+                          top_left_wall, top_right_wall,
+                          bottom_left_wall, bottom_right_wall,
+                          left_wall, right_wall,
+                          top_left_corner, top_right_corner,
+                          bottom_left_corner, bottom_right_corner]))
         
-#        if proj_mag <= 0:
-#            closest = seg_a
-#        elif proj_mag >= seg_v.magnitude():
-#            closest = seg_b
-#        else:
-        proj_v = seg_v.normalize() * proj_mag
-        closest = seg_a + proj_v
+        self.top_mallet = Mallet([250, 125], 25,
+                          utils.flatten_list([
+                          top_wall, center_line,
+                          left_wall, right_wall,
+                          top_left_corner, top_right_corner]), color=(0, 0, 255))
         
-        x, y = closest.get_xy()
-        x1, y1 = seg_a.get_xy()
-        x2, y2 = seg_b.get_xy()
-        
-        if x1 - x2 > 0:
-            x = min(x, x1)
-            x = max(x, x2)
-        else:
-            x = max(x, x1)
-            x = min(x, x2)
-        
-        if y1 - y2 > 0:
-            y = min(y, y1)
-            y = max(y, y2)
-        else:
-            y = max(y, y1)
-            y = min(y, y2)
-            
-        closest = Vector([x, y])
-        
-            
-        x, y = closest.get_xy()
-        pygame.draw.circle(screen, (0, 255, 0), [int(x), int(y)],  6, 0)
-            
-        dist_v = circ_pos - closest
-        if dist_v.magnitude() < body.radius:
-        
-        
-#        ac = line.p1 - body.position
-#        ab = line.p1 - line.p2
-##        print(ac.cross(ab) / ab.magnitude())
-#        if (ac.cross(ab) / ab.magnitude()) < body.radius:
-#            print(line)
-            
-            # Resovle interpenetration
-            direction = (line.p2 - line.p1).normalize()
-            toCenter = body.position - line.p1
-            perpComponent = toCenter - direction * (toCenter *  direction)
-            penetrationDepth = body.radius - perpComponent.magnitude()
-            mvmtToCorrectPosition = perpComponent.normalize() * penetrationDepth
-            body.position += mvmtToCorrectPosition
-            
-            # Resolve Velocity
-            body.velocity -= line.normal * (body.velocity * line.normal) * 2 * body.wall_restitution
+        self.bottom_mallet = Mallet([250, 575], 25,
+                          utils.flatten_list([
+                          center_line, bottom_wall,
+                          left_wall, right_wall,
+                          bottom_left_corner, bottom_right_corner]))
     
-    @staticmethod
-    def circle_circle_collision(bodies, dt, restitution=0.9):
-        position_0 = bodies[0].position
-        position_1 = bodies[1].position
-        total_radius = bodies[0].radius + bodies[1].radius
+        self.bodies = [self.puck, self.top_mallet, self.bottom_mallet] 
         
-        middle = position_0 - position_1
-        distance = middle.magnitude()
+        self.ai = MachineLearningAI(self.top_mallet, self.puck)
+        self.ai_force = ControlledForce(self.ai)
         
-        if distance <= 0.0 or distance >= (total_radius):
-            return None
+        self.forces = ForceRegistry()
+        self.forces.add(self.bottom_mallet, KeyboardForce())
+        self.forces.add(self.top_mallet, self.ai_force)
         
-        normal = middle * (1.0/distance)
-        penetration = total_radius - distance
+        self.score = Score()
+                
         
-        Contact(bodies, normal, penetration, restitution).resolve(dt)
-            
     def update(self, dt, screen):
-        for body in self.bodies:
-            body.draw(screen)
+        screen.fill((255, 255, 255))
+        for obj in self.bodies + self.walls:
+            obj.draw(screen)
         
+        # Clear forces from last frame
         for body in self.bodies:
             body.clear_accumulators()
-            
-#        self.aiforce.set_force(self.ai.move())
-            
         self.forces.update_forces(dt)
         
-        # Move body based 
+        # Move bodies
         for body in self.bodies:
             body.integrate(dt)
-            for line in self.walls:
-                self.circle_line_collision(body, line)
         
-        for line in self.walls:
-            pygame.draw.line(screen, (0, 0, 0), line.p1.get_xy(), line.p2.get_xy(), 5)
-            
-            
-        for i in range(len(self.bodies)):
-            for j in range(i, len(self.bodies)):
-                if i == j: continue
-                self.circle_circle_collision((self.bodies[i], self.bodies[j]), dt)
+        # Check collisions between all possible pairs of bodies
+        Collision.circle_circle(dt, [self.puck,       self.top_mallet],    restitution=0.9)
+        Collision.circle_circle(dt, [self.puck,       self.bottom_mallet], restitution=0.9)
+        Collision.circle_circle(dt, [self.top_mallet, self.bottom_mallet], restitution=0.1)
+        
+        # Make sure all bodies are within their borders
+        for body in self.bodies:
+            for border in body.borders:
+                Collision.circle_line(body, border, screen)
                 
-                    
-    
+        if self.score.update(self.puck):
+            for body in self.bodies:
+                body.reset()
+                
 if __name__ == "__main__":
-
     pygame.init()
     
     clock = pygame.time.Clock()
@@ -186,13 +113,8 @@ if __name__ == "__main__":
                 done = True
                 
         dt = clock.tick_busy_loop(60)
-        
-        screen.fill((255, 255, 255))
-#        pygame.draw.rect(screen, (255, 255, 255), (25, 25, 450, 650), 0)
         env.update(dt, screen)
         
         pygame.display.update()
-#        done = True
-    
     
     pygame.quit ()  

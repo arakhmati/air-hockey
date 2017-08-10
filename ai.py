@@ -2,6 +2,8 @@ from abc import ABC
 import numpy as np
 import random
 
+from vector import Vector
+
 class AI(ABC):
     pass
 
@@ -24,21 +26,19 @@ class MachineLearningAI(AI):
         return None
     
     def move(self):
-        goal_line = np.array([(200, 670), (300, 670)])
             
         px, py = self.mallet.position.get_xy()
-        vx, vy = self.mallet.velocity.get_xy()
+        vx, vy = self.mallet.get_velocity().get_xy()
         
         puck = self.puck
         puck_px, puck_py = self.puck.position.get_xy()
-        puck_vx, puck_vy = self.puck.velocity.get_xy()
+        puck_vx, puck_vy = self.puck.get_velocity().get_xy()
         
 #        intersects = self.intersects(np.array((puck_px, puck_py)), np.array((puck_vx, puck_vy)), goal_line)
 #        if intersects != None:
 #            goal_px, goal_py = intersects[0]
 #        else:
-        goal_px, goal_py = (250, 670)
-        
+        goal_px, goal_py = (250, 30)
         
         x, y = 0, 0
         reachable = 25 <= puck_py <=  675
@@ -48,7 +48,7 @@ class MachineLearningAI(AI):
             
             if x == -1 and px < 25  + self.mallet.radius + 100*2: x = 1
             elif x == 1 and px > 475 - self.mallet.radius - 100*2: x = -1
-            if y == -1 and py < 375 - 100: y = 1
+            if y == 1 and py > 100: y = -1
             
         else:
             if puck_vy < 0:
@@ -61,7 +61,7 @@ class MachineLearningAI(AI):
                 if puck_py > py:
                     y = 1
             else:
-                too_fast = puck.velocity.magnitude() > 0.8 
+                too_fast = puck.get_velocity().magnitude() > 0.3 
                 
                 if too_fast:
                     diff_px = goal_px - px
@@ -85,4 +85,4 @@ class MachineLearningAI(AI):
                     if puck_py > py:
                         y = 1
                         
-        return x, y
+        return Vector([x, y])

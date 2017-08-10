@@ -37,16 +37,13 @@ class ForceGenerator(ABC):
     def update_force(self, rigid_body, dt):
         pass
     
-class InputForce(ForceGenerator):
-    def __init__(self):
+class ControlledForce(ForceGenerator):
+    def __init__(self, controller):
         super().__init__()
-        self.force = Vector()
-        
-    def set_force(self, force):
-        self.force = Vector(force) * self.factor
+        self.controller = controller
         
     def update_force(self, rigid_body, dt):
-        rigid_body.add_force(self.force)
+        rigid_body.add_force(self.controller.move() * self.factor)
         
 class RandomForce(ForceGenerator):  
     def __init__(self, factor=DEFAULT_FACTOR):
@@ -67,7 +64,6 @@ class KeyboardForce(ForceGenerator):
     def __init__(self, factor=DEFAULT_FACTOR, player=0):
         super().__init__(factor)
         self.player = player
-        
         
     def update_force(self, rigid_body, dt):
         if self.player == 0:

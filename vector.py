@@ -14,9 +14,6 @@ class Vector(object):
     def magnitude(self):
         return np.linalg.norm(self._v)
     
-    def squar_magnitude(self):
-        return np.sum(np.transpose(self._v) * self._v)
-    
     def normalize(self):
         mag = self.magnitude()
         if mag != 0.0:
@@ -38,9 +35,6 @@ class Vector(object):
         else:
             raise ValueError('Vector can only be multipled by another Vector or a scalar' )
         
-#    def cross(self, vector):
-#        return np.cross(self._v, vector._v)
-        
     def __truediv__(self, scalar):
         if isinstance(scalar, numbers.Number):
             if scalar == 0:
@@ -56,18 +50,6 @@ class Vector(object):
         
     def get_xy(self):
         return self._v[0], self._v[1]
-    
-    def set_x(self, value):
-        self._v[0] = value
-        
-    def set_y(self, value):
-        self._v[1] = value
-
-    def mul_x(self, scalar):
-        self._v[0] *= scalar
-    
-    def mul_y(self, scalar):
-        self._v[1] *= scalar
         
     def __str__(self):
         return str(self._v)
