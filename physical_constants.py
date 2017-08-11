@@ -1,4 +1,5 @@
-maximum_speed = 1.2
+mallet_maximum_speed = 0.75
+puck_maximum_speed = 1
 
 puck_mass = 1.0
 mallet_mass = 15.0

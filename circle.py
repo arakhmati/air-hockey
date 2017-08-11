@@ -6,9 +6,11 @@ from vector import Vector
 import physical_constants as P
     
 class Circle(ABC):
-    def __init__(self, position, radius, borders, color, mass, wall_restitution):
+    def __init__(self, position, radius, borders, color, mass, maximum_speed, wall_restitution):
         self.position = Vector(position)
         self._velocity = Vector()
+        self.maximum_speed = maximum_speed
+        
         
         self.default_position = self.position
         
@@ -21,15 +23,15 @@ class Circle(ABC):
         self.accumulated_forces = Vector()
         
         self.radius = radius
-        self.wall_restitution = wall_restitution
-        self.color = color
         self.borders = borders
+        self.color = color
+        self.wall_restitution = wall_restitution
         
     def set_velocity(self, velocity):
         magnitude = velocity.magnitude()
         # Limit velocity to prevent the body from escaping its borders
-        if magnitude > P.maximum_speed:
-            velocity *= P.maximum_speed / magnitude
+        if magnitude > self.maximum_speed:
+            velocity *= self.maximum_speed / magnitude
         self._velocity = velocity
         
     def get_velocity(self):
@@ -61,8 +63,8 @@ class Circle(ABC):
         
 class Puck(Circle):
     def __init__(self, position, radius, borders, color):
-        super().__init__(position, radius, borders, color, P.puck_mass, P.puck_wall_restitution)
+        super().__init__(position, radius, borders, color, P.puck_mass, P.puck_maximum_speed, P.puck_wall_restitution)
         
 class Mallet(Circle):
     def __init__(self, position, radius, borders, color):
-        super().__init__(position, radius, borders, color, P.mallet_mass, P.mallet_wall_restitution)
+        super().__init__(position, radius, borders, color, P.mallet_mass, P.mallet_maximum_speed, P.mallet_wall_restitution)

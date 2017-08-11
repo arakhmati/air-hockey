@@ -43,7 +43,7 @@ class ControlledForce(ForceGenerator):
         self.controller = controller
         
     def update_force(self, rigid_body, dt):
-        rigid_body.add_force(self.controller.move() * self.factor)
+        rigid_body.add_force(self.controller.force * self.factor)
         
 class RandomForce(ForceGenerator):  
     def __init__(self, factor=P.force_multiplier):

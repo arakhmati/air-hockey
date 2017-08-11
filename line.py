@@ -14,9 +14,7 @@ class Line(object):
     
     def __init__(self, p1, p2):
         self.p1, self.p2 = [Vector(point) if not isinstance(point, Vector) else point for point in [p1, p2]]     
-#        print(type(self.p1))
 
-        # TODO: make parametric
         sum_over_edges  = Line._edge_sum(self.p1, Vector(D.center))
         sum_over_edges += Line._edge_sum(Vector(D.center), self.p2)
         sum_over_edges += Line._edge_sum(self.p2, self.p1)

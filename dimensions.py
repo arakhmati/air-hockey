@@ -3,19 +3,19 @@ width = 450
 height = 800
 
 vertical_margin = 80
-horizontal_margin = 15
+horizontal_margin = 20
 
 goalpost_length = 150
 
-arc_radius = 100
+arc_radius = 130
 
-body_radius = 20
+mallet_radius = 27
+puck_radius = int(mallet_radius / 68 * 63)
 
 bezier_ratio = 0.1
 
 puck_offset_multiplier = 5
 mallet_offset_multiplier = 2
-
 
 rink_circle_offset = 75
 rink_circle_radius = 40
@@ -59,13 +59,13 @@ post_bottom_left  = [center[0] - half_goalpost_length, rink_bottom]
 post_bottom_right = [center[0] + half_goalpost_length, rink_bottom]
 
 
-puck_default_position_top    = [center[0], center[1] - puck_offset_multiplier * body_radius]
-puck_default_position_bottom = [center[0], center[1] + puck_offset_multiplier * body_radius]
-top_mallet_position    = [center[0], rink_top +    mallet_offset_multiplier * body_radius]
-bottom_mallet_position = [center[0], rink_bottom - mallet_offset_multiplier * body_radius]
+puck_default_position_top    = [center[0], center[1] - puck_offset_multiplier * puck_radius]
+puck_default_position_bottom = [center[0], center[1] + puck_offset_multiplier * puck_radius]
+top_mallet_position    = [center[0], rink_top +    mallet_offset_multiplier * mallet_radius]
+bottom_mallet_position = [center[0], rink_bottom - mallet_offset_multiplier * mallet_radius]
 
-top_goal    = rink_top    - body_radius
-bottom_goal = rink_bottom + body_radius
+top_goal    = rink_top    - mallet_radius
+bottom_goal = rink_bottom + mallet_radius
 
 post_center_left  = [rink_left + center[0] - half_goalpost_length, center[1]]
 post_center_right = [rink_left + center[0] + half_goalpost_length, center[1]]

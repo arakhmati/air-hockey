@@ -20,3 +20,5 @@ class Score(object):
             
         return scored
             
+    def __repr__(self):
+        return str(self._score)
