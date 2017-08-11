@@ -1,6 +1,4 @@
-import pygame
-
-from vector import Vector    
+import vector as V  
         
 class Collision(object):        
     @staticmethod
@@ -10,7 +8,7 @@ class Collision(object):
         position_1 = bodies[1].position
         velocity_0 = bodies[0].get_velocity()
         velocity_1 = bodies[1].get_velocity()
-        if (velocity_0 - velocity_1) * (position_0 - position_1) > 0:
+        if (velocity_0 - velocity_1).dot(position_0 - position_1) > 0:
             return
 #            
         mass_0 = bodies[0].get_mass()
@@ -47,7 +45,7 @@ class Collision(object):
         total_radius = bodies[0].radius + bodies[1].radius
         
         middle = position_0 - position_1
-        distance = middle.magnitude()
+        distance = V.magnitude(middle)
         
         if distance <= 0.0 or distance >= (total_radius): return
         
@@ -61,29 +59,29 @@ class Collision(object):
     def circle_line(body, line):        
         relative_position = body.position - line.p1
     
-        projected_vector = line.direction * (relative_position * line.direction)
+        projected_vector = line.direction * relative_position.dot(line.direction)
         closest_point = line.p1 + projected_vector
         
-        cx, cy = closest_point.get_xy()
-        lx1, ly1 = line.p1.get_xy()
-        lx2, ly2 = line.p2.get_xy()
+        cx, cy = closest_point
+        lx1, ly1 = line.p1
+        lx2, ly2 = line.p2
         
         # Make sure that closest point lies on the line
         if lx1 - lx2 > 0: cx = max(min(cx, lx1), lx2)
         else:             cx = min(max(cx, lx1), lx2)
         if ly1 - ly2 > 0: cy = max(min(cy, ly1), ly2)
         else:             cy = min(max(cy, ly1), ly2)
-        closest_point = Vector([cx, cy])
+        closest_point[:] = cx, cy
             
-        distance = (body.position - closest_point).magnitude()
+        distance = V.magnitude(body.position - closest_point)
         if distance < body.radius:
             
             # Resovle interpenetration
             orthogonal_vector = relative_position - projected_vector
-            penetration = body.radius - orthogonal_vector.magnitude()
-            disposition = orthogonal_vector.normalize() * penetration
+            penetration = body.radius - V.magnitude(orthogonal_vector)
+            disposition = V.normalize(orthogonal_vector) * penetration
             body.position += disposition
             
             # Resolve Velocity
-            velocity = body.get_velocity() - line.normal * (body.get_velocity() * line.normal) * 2 * body.wall_restitution
+            velocity = body.get_velocity() - line.normal * body.get_velocity().dot(line.normal) * 2 * body.wall_restitution
             body.set_velocity(velocity)

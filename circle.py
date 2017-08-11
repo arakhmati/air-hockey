@@ -1,18 +1,16 @@
-import pygame
 import numpy as np
 from abc import ABC
 
-from vector import Vector
+import vector as V
 import physical_constants as P
     
 class Circle(ABC):
     def __init__(self, position, radius, borders, color, mass, maximum_speed, wall_restitution):
-        self.position = Vector(position)
-        self._velocity = Vector()
+        self.position = np.array(position, dtype=np.float32)
+        self._velocity = np.zeros(2, dtype=np.float32)
         self.maximum_speed = maximum_speed
         
-        
-        self.default_position = self.position
+        self.default_position = np.copy(self.position)
         
         if mass == 0.0:
             raise ValueError('Mass cannot be zero')
@@ -20,7 +18,7 @@ class Circle(ABC):
         self._inverse_mass = 1/float(mass)
         
         self.friction = P.friction
-        self.accumulated_forces = Vector()
+        self.accumulated_forces = np.zeros(2, dtype=np.float32)
         
         self.radius = radius
         self.borders = borders
@@ -28,7 +26,7 @@ class Circle(ABC):
         self.wall_restitution = wall_restitution
         
     def set_velocity(self, velocity):
-        magnitude = velocity.magnitude()
+        magnitude = V.magnitude(velocity)
         # Limit velocity to prevent the body from escaping its borders
         if magnitude > self.maximum_speed:
             velocity *= self.maximum_speed / magnitude
@@ -47,7 +45,7 @@ class Circle(ABC):
         self.accumulated_forces += force
         
     def clear_accumulators(self):
-        self.accumulated_forces.clear()        
+        self.accumulated_forces[:] = 0      
         
     # updates position and velocity
     def integrate(self, dt):
@@ -57,9 +55,9 @@ class Circle(ABC):
         self.position += self._velocity * dt
         
     def reset(self):
-        self.accumulated_forces.clear()
-        self.position = self.default_position
-        self._velocity = Vector()
+        self.clear_accumulators()
+        np.copyto(self.position, self.default_position)
+        self._velocity[:] = 0 
         
 class Puck(Circle):
     def __init__(self, position, radius, borders, color):

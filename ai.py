@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import random
 
-from vector import Vector
+import vector as V
 import dimensions as D
 import physical_constants as P
 
@@ -20,12 +20,16 @@ class MachineLearningAI(AI):
         self.mallet = mallet
         self.puck = puck
         self.mode = mode
-        self.force = Vector()
+        self.force = np.zeros(2, dtype=np.float32)
         
     def intersects(self, origin, direction, line):
+        origin = np.array(origin, dtype=np.float32)
+        direction = np.array(direction, dtype=np.float32)
+        line[0] = np.array(line[0], dtype=np.float32)
+        line[1] = np.array(line[1], dtype=np.float32)
         v1 = origin - line[0]
         v2 = line[1] - line[0]
-        v3 = np.array([-direction[1], direction[0]])
+        v3 = np.array([-direction[1], direction[0]], dtype=np.float32)
         t1 = np.cross(v2, v1) / np.dot(v2, v3)
         t2 = np.dot(v1, v3) / np.dot(v2, v3)
         if t1 >= 0.0 and t2 >= 0.0 and t2 <= 1.0:
@@ -34,17 +38,17 @@ class MachineLearningAI(AI):
     
     def move(self):
                 
-        px, py = self.mallet.position.get_xy()
-        vx, vy = self.mallet.get_velocity().get_xy()
+        px, py = self.mallet.position
+        vx, vy = self.mallet.get_velocity()
         
         puck = self.puck
-        puck_px, puck_py = self.puck.position.get_xy()
-        puck_vx, puck_vy = self.puck.get_velocity().get_xy()
+        puck_px, puck_py = self.puck.position
+        puck_vx, puck_vy = self.puck.get_velocity()
             
             
         if self.mode is 'top':
             
-            intersects = self.intersects(np.array((puck_px, puck_py)), np.array((puck_vx, puck_vy)), [np.array(D.post_top_left), np.array(D.post_top_right)])
+            intersects = self.intersects((puck_px, puck_py), (puck_vx, puck_vy), [D.post_top_left, D.post_top_right])
             if intersects != None:
                 goal_px, goal_py = intersects[0]
             else:
@@ -71,7 +75,7 @@ class MachineLearningAI(AI):
                     if puck_py > py:
                         y = 1
                 else:
-                    too_fast = puck.get_velocity().magnitude() > 0.8*P.puck_maximum_speed 
+                    too_fast = V.magnitude(puck.get_velocity()) > 0.8*P.puck_maximum_speed 
                     
                     if too_fast:
                         diff_px = goal_px - px
@@ -95,10 +99,10 @@ class MachineLearningAI(AI):
                         if puck_py > py:
                             y = 1
                             
-            self.force = Vector([x, y])
+            self.force[:] = x, y
     
         elif self.mode == 'bottom':
-            intersects = self.intersects(np.array((puck_px, puck_py)), np.array((puck_vx, puck_vy)), [np.array(D.post_bottom_left), np.array(D.post_bottom_right)])
+            intersects = self.intersects((puck_px, puck_py), (puck_vx, puck_vy), [D.post_bottom_left, D.post_bottom_right])
             if intersects != None:
                 goal_px, goal_py = intersects[0]
             else:
@@ -125,7 +129,7 @@ class MachineLearningAI(AI):
                     if puck_py > py:
                         y = 1
                 else:
-                    too_fast = puck.get_velocity().magnitude() > 0.8*P.puck_maximum_speed 
+                    too_fast = V.magnitude(puck.get_velocity()) > 0.8*P.puck_maximum_speed 
                     
                     if too_fast:
                         diff_px = goal_px - px
@@ -149,4 +153,4 @@ class MachineLearningAI(AI):
                         if puck_py > py:
                             y = 1
                         
-            self.force = Vector([x, y])
+            self.force[:] = x, y

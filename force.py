@@ -1,6 +1,6 @@
 import pygame
+import numpy as np
 from abc import ABC, abstractmethod
-from vector import Vector
 
 import physical_constants as P
 
@@ -50,12 +50,12 @@ class RandomForce(ForceGenerator):
         super().__init__(factor)
         self.count = 0
         self.limit = 10
-        self.force = Vector([0, 0])
+        self.force = np.array([0, 0], dtype=np.float32)
         
     def update_force(self, rigid_body, dt):
         import random
         if self.count == self.limit:
-           self.force =  Vector([random.randrange(-1, 2, 1)*self.factor, random.randrange(-1, 2, 1)*self.factor])
+           self.force[:] = random.randrange(-1, 2, 1)*self.factor, random.randrange(-1, 2, 1)*self.factor
            self.count = 0
         self.count += 1
         rigid_body.add_force(self.force)
@@ -64,6 +64,7 @@ class KeyboardForce(ForceGenerator):
     def __init__(self, factor=P.force_multiplier, player=0):
         super().__init__(factor)
         self.player = player
+        self.force = np.array([0, 0], dtype=np.float32)
         
     def update_force(self, rigid_body, dt):
         if self.player == 0:
@@ -83,5 +84,5 @@ class KeyboardForce(ForceGenerator):
             elif keys[pygame.K_DOWN]:  y =  1     
             else:                      y =  0
             
-        self.force =  Vector([x*self.factor, y*self.factor])
+        self.force[:] = x*self.factor, y*self.factor
         rigid_body.add_force(self.force)

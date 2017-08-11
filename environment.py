@@ -69,7 +69,6 @@ class Environment(object):
                           center_line, bottom_wall,
                           left_wall, right_wall,
                           bottom_left_corner, bottom_right_corner]), C.bottom_mallet)
-     
     
         self.bodies = [self.puck, self.top_mallet, self.bottom_mallet] 
         
@@ -79,7 +78,6 @@ class Environment(object):
         self.bottom_ai_force = ControlledForce(self.bottom_ai)
         
         self.forces = ForceRegistry()
-#        self.forces.add(self.bottom_mallet, KeyboardForce())
         self.forces.add(self.top_mallet, self.top_ai_force)
         self.forces.add(self.bottom_mallet, self.bottom_ai_force)
         
@@ -89,30 +87,6 @@ class Environment(object):
         self.puck_sprite          = Sprite('sprites/puck.png')
         self.top_mallet_sprite    = Sprite('sprites/top_mallet.png')
         self.bottom_mallet_sprite = Sprite('sprites/bottom_mallet.png')
-                
-        
-#        self.circles = [D.circle_top_left, D.circle_top_right, D.circle_bottom_left, D.circle_bottom_right]
-#        def compute_arc(arc_points, center_point):
-#            arc_points = [[int(x), int(y)] for (x, y) in [v.get_xy() for v in arc_points]]
-#            arc_points.sort(key=lambda x: x[1])
-##            print(arc_points)
-#            x, y = center_point
-#            if x < D.center[0]: center_point[0] -= 5
-#            else:               center_point[0] += 5
-#            if y < D.center[1]:
-#                extra_point = [center_point[0], arc_points[-1][1]]
-#                output = arc_points + [extra_point, center_point]
-#            else:
-#                extra_point = [center_point[0], arc_points[0][1]]
-#                output = arc_points + [center_point, extra_point]
-#            return output
-#        self.arcs = [compute_arc(self.top_left_corner_points, D.arc_top_left_center)]
-#        self.arcs.append(compute_arc(self.top_right_corner_points, D.arc_top_right_center))
-#        self.arcs.append(compute_arc(self.bottom_left_corner_points, D.arc_bottom_left_center))
-#        self.arcs.append(compute_arc(self.bottom_right_corner_points, D.arc_bottom_right_center))
-#        self.walls = utils.flatten_list([
-#                      top_left_wall, top_right_wall,
-#                      bottom_left_wall, bottom_right_wall])
         
     def step(self, dt):
         
@@ -129,13 +103,13 @@ class Environment(object):
         for body in self.bodies:
             body.integrate(dt)
             
-        # Make sure all bodies are within their borders
-        for body in self.bodies:
-            for border in body.borders:
-                Collision.circle_line(body, border)
+#        # Make sure all bodies are within their borders
+#        for body in self.bodies:
+#            for border in body.borders:
+#                Collision.circle_line(body, border)
         
         # Check collisions between all possible pairs of bodies
-        for i in range(15): # Loop to prevent the objects from going each other when the bounce
+        for i in range(3): # Loop to prevent the objects from going each other when the bounce
             Collision.circle_circle(dt, [self.puck,       self.top_mallet],    restitution=P.puck_mallet_restitution)
             Collision.circle_circle(dt, [self.puck,       self.bottom_mallet], restitution=P.puck_mallet_restitution)
             Collision.circle_circle(dt, [self.top_mallet, self.bottom_mallet], restitution=P.mallet_mallet_restitution)
@@ -150,30 +124,14 @@ class Environment(object):
                 body.reset()
             print(self.score)
             
-        return self.bottom_ai.force.get_xy()
+        return self.bottom_ai.force
                 
     def draw(self, screen):
         
         screen.blit(self.table_sprite.image, [0,0])
-        screen.blit(self.puck_sprite.image, np.array(self.puck.position.get_xy())-np.array([self.puck.radius, self.puck.radius]))
-        screen.blit(self.top_mallet_sprite.image, np.array(self.top_mallet.position.get_xy())-np.array([self.puck.radius, self.puck.radius]))
-        screen.blit(self.bottom_mallet_sprite.image, np.array(self.bottom_mallet.position.get_xy())-np.array([self.puck.radius, self.puck.radius]))
+        screen.blit(self.puck_sprite.image, self.puck.position-np.array([self.puck.radius, self.puck.radius]))
+        screen.blit(self.top_mallet_sprite.image, self.top_mallet.position-np.array([self.puck.radius, self.puck.radius]))
+        screen.blit(self.bottom_mallet_sprite.image, self.bottom_mallet.position-np.array([self.puck.radius, self.puck.radius]))
         
-#        for line in self.borders:
-#            pygame.draw.line(screen, (255, 0, 0), line.p2.get_xy(), line.p1.get_xy(), 6)
-#
-#        screen.fill(C.table)
-#        pygame.draw.rect(screen, C.rink, [D.rink_left, D.rink_top, D.rink_width, D.rink_height])
-#        for arc in self.arcs:
-#            pygame.draw.polygon(screen, (0, 0, 0), arc)
-#        for line in self.walls:
-#            pygame.draw.line(screen, (0, 0, 0), line.p2.get_xy(), line.p1.get_xy(), 6)
-#            
-#        pygame.draw.circle(screen, C.rink_lines, D.center, 6)
-#        pygame.draw.line(screen, C.rink_lines, D.center_left, D.post_center_left,   6)
-#        pygame.draw.line(screen, C.rink_lines, D.post_center_right, D.center_right, 6)
-#        for obj in self.circles:
-#            pygame.draw.circle(screen, C.rink_lines, obj, D.rink_circle_radius, 2)  
-#
-#        for obj in self.bodies:
-#            pygame.draw.circle(screen, obj.color, np.array(obj.position.get_xy()).astype(int), obj.radius)          
+        for line in self.borders:
+            pygame.draw.line(screen, (255, 0, 0), line.p2, line.p1, 6)        

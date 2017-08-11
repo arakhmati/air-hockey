@@ -59,8 +59,8 @@ post_bottom_left  = [center[0] - half_goalpost_length, rink_bottom]
 post_bottom_right = [center[0] + half_goalpost_length, rink_bottom]
 
 
-puck_default_position_top    = [center[0], center[1] - puck_offset_multiplier * puck_radius]
-puck_default_position_bottom = [center[0], center[1] + puck_offset_multiplier * puck_radius]
+puck_default_top_position    = [center[0], center[1] - puck_offset_multiplier * puck_radius]
+puck_default_bottom_position = [center[0], center[1] + puck_offset_multiplier * puck_radius]
 top_mallet_position    = [center[0], rink_top +    mallet_offset_multiplier * mallet_radius]
 bottom_mallet_position = [center[0], rink_bottom - mallet_offset_multiplier * mallet_radius]
 
