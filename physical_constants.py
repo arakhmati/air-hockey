@@ -1,12 +1,13 @@
-mallet_maximum_speed = 8
+force_multiplier = 3
+
+mallet_maximum_speed = 12
 puck_maximum_speed   = 15
 
 puck_mass   = 1
-mallet_mass = 15
+mallet_mass = 5
 
-friction = 0.9995
-
-force_multiplier = 1
+puck_friction   = 0.9995
+mallet_friction = 0.95
 
 mallet_mallet_restitution = 0.1
 puck_mallet_restitution   = 0.9

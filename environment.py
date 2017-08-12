@@ -2,7 +2,7 @@ import itertools
 import numpy as np
 
 from circle import Puck, Mallet
-from force import ForceRegistry, RandomForce, KeyboardForce, ControlledForce
+from force import ForceRegistry, RandomForce, PlayerForce, ControlledForce
 from collision import Collision
 from ai import RuleBasedAI, MachineLearningAI
 from line import Line
@@ -72,6 +72,7 @@ class Environment(object):
         self.forces = ForceRegistry()
         self.forces.add(self.top_mallet,    self.top_ai_force)
         self.forces.add(self.bottom_mallet, self.bottom_ai_force)
+#        self.forces.add(self.bottom_mallet, PlayerForce(player=0))
         
         self.score = Score()
         
@@ -86,8 +87,8 @@ class Environment(object):
         self.puck_sprites_top    = [pygame.image.load('sprites/puck_top_{}.png'.format(i))    for i in range(7)]
         self.puck_sprites_bottom = [pygame.image.load('sprites/puck_bottom_{}.png'.format(i)) for i in range(7)]
         
-        self.top_arm_sprite = pygame.transform.flip(pygame.image.load('sprites/arm.png'), False, True)
-        self.bottom_arm_sprite = pygame.image.load('sprites/arm.png')
+        self.top_arm_sprite = pygame.transform.flip(pygame.image.load('sprites/arm_300.png'), False, True)
+        self.bottom_arm_sprite = pygame.image.load('sprites/arm_300.png')
         
     def step(self, delta_time=1, actions=None):
         
@@ -126,54 +127,60 @@ class Environment(object):
             
         return self.observations
     
-    def draw(self, screen, puck, top_mallet, bottom_mallet):
+    def draw(self, screen, puck, top_mallet, bottom_mallet, debug=False):
+        import pygame
+        
         screen.blit(self.table_sprite, [0,0])
-        screen.blit(self.top_mallet_sprite,    top_mallet - D.mallet_radius_array)
-        screen.blit(self.bottom_mallet_sprite, bottom_mallet - D.mallet_radius_array)
+        screen.blit(self.top_mallet_sprite,    top_mallet - D.mallet_radius)
+        screen.blit(self.bottom_mallet_sprite, bottom_mallet - D.mallet_radius)
         
         if D.rink_top + D.puck_radius <= puck[1] <= D.rink_bottom - D.puck_radius:
-            screen.blit(self.puck_sprite, puck - D.puck_radius_array)
+            screen.blit(self.puck_sprite, puck - D.puck_radius)
         elif D.rink_top - D.puck_radius <= puck[1] <= D.center[1]:
             if   D.rink_top + D.puck_radius * 0.7 <= puck[1]:
-                screen.blit(self.puck_sprites_top[6], puck - D.puck_radius_array)
+                screen.blit(self.puck_sprites_top[6], puck - D.puck_radius)
             elif D.rink_top + D.puck_radius * 0.4 <= puck[1]:
-                screen.blit(self.puck_sprites_top[5], puck - D.puck_radius_array)
+                screen.blit(self.puck_sprites_top[5], puck - D.puck_radius)
             elif D.rink_top + D.puck_radius * 0.1 <= puck[1]:
-                screen.blit(self.puck_sprites_top[4], puck - D.puck_radius_array)
+                screen.blit(self.puck_sprites_top[4], puck - D.puck_radius)
             elif D.rink_top - D.puck_radius * 0.1 <= puck[1]:
-                screen.blit(self.puck_sprites_top[3], puck - D.puck_radius_array)
+                screen.blit(self.puck_sprites_top[3], puck - D.puck_radius)
             elif D.rink_top - D.puck_radius * 0.4 <= puck[1]:
-                screen.blit(self.puck_sprites_top[2], puck - D.puck_radius_array)
+                screen.blit(self.puck_sprites_top[2], puck - D.puck_radius)
             elif D.rink_top - D.puck_radius * 0.7 <= puck[1]:
-                screen.blit(self.puck_sprites_top[1], puck - D.puck_radius_array)
+                screen.blit(self.puck_sprites_top[1], puck - D.puck_radius)
             elif D.rink_top - D.puck_radius       <= puck[1]:
-                screen.blit(self.puck_sprites_top[0], puck - D.puck_radius_array)
+                screen.blit(self.puck_sprites_top[0], puck - D.puck_radius)
         elif D.center[1] <= puck[1] <= D.rink_bottom + D.puck_radius:
             if   puck[1] <= D.rink_bottom - D.puck_radius * 0.7:
-                screen.blit(self.puck_sprites_bottom[6], puck - D.puck_radius_array)
+                screen.blit(self.puck_sprites_bottom[6], puck - D.puck_radius)
             elif puck[1] <= D.rink_bottom - D.puck_radius * 0.4:
-                screen.blit(self.puck_sprites_bottom[5], puck - D.puck_radius_array)
+                screen.blit(self.puck_sprites_bottom[5], puck - D.puck_radius)
             elif puck[1] <= D.rink_bottom - D.puck_radius * 0.1:
-                screen.blit(self.puck_sprites_bottom[4], puck - D.puck_radius_array)
+                screen.blit(self.puck_sprites_bottom[4], puck - D.puck_radius)
             elif puck[1] <= D.rink_bottom + D.puck_radius * 0.1:
-                screen.blit(self.puck_sprites_bottom[3], puck - D.puck_radius_array)
+                screen.blit(self.puck_sprites_bottom[3], puck - D.puck_radius)
             elif puck[1] <= D.rink_bottom + D.puck_radius * 0.4:
-                screen.blit(self.puck_sprites_bottom[2], puck - D.puck_radius_array)
+                screen.blit(self.puck_sprites_bottom[2], puck - D.puck_radius)
             elif puck[1] <= D.rink_bottom + D.puck_radius * 0.7:
-                screen.blit(self.puck_sprites_bottom[1], puck - D.puck_radius_array)
+                screen.blit(self.puck_sprites_bottom[1], puck - D.puck_radius)
             elif puck[1] <= D.rink_bottom + D.puck_radius:
-                screen.blit(self.puck_sprites_bottom[0], puck - D.puck_radius_array)
+                screen.blit(self.puck_sprites_bottom[0], puck - D.puck_radius)
                 
                 
-        screen.blit(self.top_arm_sprite, top_mallet - np.array((0, self.top_arm_sprite.get_size()[1]), dtype=np.float32))
-#        screen.blit(self.bottom_arm_sprite, bottom_mallet)
+        screen.blit(self.top_arm_sprite, 
+                    top_mallet - np.array((D.mallet_radius, self.top_arm_sprite.get_size()[1] - D.mallet_radius), dtype=np.float32))
+#        screen.blit(self.bottom_arm_sprite, bottom_mallet - D.mallet_radius)
+
         
+        pygame.draw.line(screen, (0, 0, 16), [D.rink_left, bottom_mallet[1]], [D.rink_right, bottom_mallet[1]], 24) 
+        pygame.draw.line(screen, (0, 0, 16), [(D.table_left+D.rink_left)/2, D.table_bottom], [(D.table_left+D.rink_left)/2, D.center[1]], 24) 
+        pygame.draw.line(screen, (0, 0, 16), [(D.table_right+D.rink_right)/2, D.table_bottom], [(D.table_right+D.rink_right)/2, D.center[1]], 24) 
+ 
         
-        import pygame
-        pygame.draw.line(screen, (0, 0, 0), [D.rink_left, bottom_mallet[1]], [D.rink_right, bottom_mallet[1]], 24)  
-        
-#        for line in self.borders:
-#            pygame.draw.line(screen, (255, 0, 0), line.p2, line.p1, 6)  
+        if debug:
+            for line in self.borders:
+                pygame.draw.line(screen, (0, 255, 255), line.p2, line.p1, 6)  
             
     def draw_collision_points(self, screen):
         import pygame
@@ -189,10 +196,10 @@ class Environment(object):
             for point in points:
                 pygame.draw.circle(screen, color, point, radius)  
      
-    def render(self, screen, draw_collision=False):
+    def render(self, screen, debug=0):
         if screen is None: return
-        self.draw(screen, self.puck.position, self.top_mallet.position, self.bottom_mallet.position)
-        if draw_collision: self.draw_collision_points(screen)
+        self.draw(screen, self.puck.position, self.top_mallet.position, self.bottom_mallet.position, debug)
+        if debug: self.draw_collision_points(screen)
         
     # Render game after it was played
     def render_observations(self, screen, observations):

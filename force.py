@@ -60,11 +60,12 @@ class RandomForce(ForceGenerator):
         self.count += 1
         body.add_force(self.force)
         
-class KeyboardForce(ForceGenerator):  
+class PlayerForce(ForceGenerator):  
     def __init__(self, factor=P.force_multiplier, player=0):
         super().__init__(factor)
         self.player = player
         self.force = np.array([0, 0], dtype=np.float32)
+        self.prev_x, self.prev_y = 0, 0
         
     def update_force(self, body):
         if self.player == 0:
@@ -75,7 +76,7 @@ class KeyboardForce(ForceGenerator):
             if   keys[pygame.K_w]: y = -1       
             elif keys[pygame.K_s]: y =  1     
             else:                  y =  0
-        else:
+        elif self.player == 1:
             keys = pygame.key.get_pressed()  
             if   keys[pygame.K_LEFT]:  x = -1  
             elif keys[pygame.K_RIGHT]: x =  1

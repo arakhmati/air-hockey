@@ -12,7 +12,7 @@ import dimensions as D
 project_path = os.path.dirname(os.path.realpath(__file__)).replace('air_hockey', '')
 
 if __name__ == "__main__":
-    screen_mode = False
+    screen_mode = 2
     number_of_frames = 2000
     
     pygame.init()
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     
     if screen is None:
         if os.path.isfile('game.avi'): os.remove('game.avi')
-        writer = cv2.VideoWriter('game.avi', cv2.VideoWriter_fourcc(*'PIM1'), 60, (D.width, D.height))
+        writer = cv2.VideoWriter('game.avi', cv2.VideoWriter_fourcc(*'PIM1'), 60, (D.width, D.height-2*D.vertical_margin))
         screen = pygame.Surface((D.width, D.height)) 
         bar.init()
         for i, observations in enumerate(data):
@@ -48,6 +48,8 @@ if __name__ == "__main__":
             x = pygame.surfarray.array3d(screen).astype(np.uint8)
             x = x[:, :, ::-1] # Flip from BGR to RGB
             x = x.transpose((1,0,2)) # Transpose to make it portrait
+            x = x[D.vertical_margin:, :, :]
+            x = x[:-D.vertical_margin, :, :]
             writer.write(x)
             bar.update(i)
         

@@ -5,7 +5,7 @@ import vector as V
 import physical_constants as P
     
 class Circle(ABC):
-    def __init__(self, position, radius, borders, mass, maximum_speed, body_restitution, wall_restitution):
+    def __init__(self, position, radius, borders, mass, maximum_speed, friction, body_restitution, wall_restitution):
         self.position = np.array(position, dtype=np.float32)
         self._velocity = np.zeros(2, dtype=np.float32)
         self.maximum_speed = maximum_speed
@@ -16,7 +16,7 @@ class Circle(ABC):
             raise ValueError('Mass cannot be zero')
         self._inverse_mass = 1/float(mass)
         
-        self.friction = P.friction
+        self.friction = friction
         self.accumulated_forces = np.zeros(2, dtype=np.float32)
         
         self.radius = radius
@@ -58,11 +58,11 @@ class Circle(ABC):
 class Puck(Circle):
     def __init__(self, name, position, radius, borders):
         super().__init__(position, radius, borders, P.puck_mass, 
-             P.puck_maximum_speed, P.mallet_mallet_restitution, P.puck_wall_restitution)
+             P.puck_maximum_speed, P.puck_friction, P.mallet_mallet_restitution, P.puck_wall_restitution)
         self.name = name
         
 class Mallet(Circle):
     def __init__(self, name, position, radius, borders):
         super().__init__(position, radius, borders, P.mallet_mass, 
-             P.mallet_maximum_speed, P.puck_mallet_restitution, P.mallet_wall_restitution)
+             P.mallet_maximum_speed, P.mallet_friction, P.puck_mallet_restitution, P.mallet_wall_restitution)
         self.name = name

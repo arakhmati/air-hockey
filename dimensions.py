@@ -76,9 +76,6 @@ circle_top_right    = np.array([arc_top_right_center[0]    - rink_circle_offset,
 circle_bottom_left  = np.array([arc_bottom_left_center[0]  + rink_circle_offset, arc_bottom_left_center[1]  - rink_circle_offset], dtype=np.float32)
 circle_bottom_right = np.array([arc_bottom_right_center[0] - rink_circle_offset, arc_bottom_right_center[1] - rink_circle_offset], dtype=np.float32)
 
-mallet_radius_array = np.array([mallet_radius, mallet_radius])
-puck_radius_array   = np.array([puck_radius, puck_radius])
-
 
 
 

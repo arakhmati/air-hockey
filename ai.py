@@ -101,7 +101,7 @@ class MachineLearningAI(AI):
                         if puck_py > py:
                             y = 1
                             
-            self.force[:] = x*8, y*10
+            self.force[:] = x, y
     
         elif self.mode == 'bottom':
             intersects = self.intersects((puck_px, puck_py), (puck_vx, puck_vy), [D.post_bottom_left, D.post_bottom_right])
@@ -155,4 +155,4 @@ class MachineLearningAI(AI):
                         if puck_py > py:
                             y = 1
                         
-            self.force[:] = x*8, y*10
+            self.force[:] = x, y
