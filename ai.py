@@ -25,13 +25,15 @@ class MachineLearningAI(AI):
     def intersects(self, origin, direction, line):
         origin = np.array(origin, dtype=np.float32)
         direction = np.array(direction, dtype=np.float32)
-        line[0] = np.array(line[0], dtype=np.float32)
-        line[1] = np.array(line[1], dtype=np.float32)
         v1 = origin - line[0]
         v2 = line[1] - line[0]
         v3 = np.array([-direction[1], direction[0]], dtype=np.float32)
-        t1 = np.cross(v2, v1) / np.dot(v2, v3)
-        t2 = np.dot(v1, v3) / np.dot(v2, v3)
+        v2_d_v3 = np.dot(v2, v3)
+        if v2_d_v3 != 0:
+            t1 = np.cross(v2, v1) / v2_d_v3
+            t2 = np.dot(v1, v3)   / v2_d_v3
+        else:
+            t1 = t2 = -1
         if t1 >= 0.0 and t2 >= 0.0 and t2 <= 1.0:
             return [origin + t1 * direction]
         return None
@@ -60,8 +62,8 @@ class MachineLearningAI(AI):
                 x = random.randrange(-1, 2, 1)
                 y = random.randrange(-1, 2, 1)
                 
-                if x == -1 and px < D.rink_left  + self.mallet.radius + 100*2: x = 1
-                elif x == 1 and px > D.rink_right - self.mallet.radius - 100*2: x = -1
+                if x == -1 and px < D.rink_left  + self.mallet.radius + D.goalpost_length//2: x = 1
+                elif x == 1 and px > D.rink_right - self.mallet.radius - D.goalpost_length//2: x = -1
                 if y == 1 and py > (D.center[1] - D.goalpost_length): y = -1
                 
             else:
@@ -99,7 +101,7 @@ class MachineLearningAI(AI):
                         if puck_py > py:
                             y = 1
                             
-            self.force[:] = x, y
+            self.force[:] = x*8, y*10
     
         elif self.mode == 'bottom':
             intersects = self.intersects((puck_px, puck_py), (puck_vx, puck_vy), [D.post_bottom_left, D.post_bottom_right])
@@ -114,8 +116,8 @@ class MachineLearningAI(AI):
                 x = random.randrange(-1, 2, 1)
                 y = random.randrange(-1, 2, 1)
                 
-                if x == -1 and px < D.rink_left  + self.mallet.radius + 100*2: x = 1
-                elif x == 1 and px > D.rink_right - self.mallet.radius - 100*2: x = -1
+                if x == -1 and px < D.rink_left  + self.mallet.radius + D.goalpost_length//2: x = 1
+                elif x == 1 and px > D.rink_right - self.mallet.radius - D.goalpost_length//2: x = -1
                 if y == -1 and py < (D.center[1] + D.goalpost_length): y = 1
                 
             else:
@@ -153,4 +155,4 @@ class MachineLearningAI(AI):
                         if puck_py > py:
                             y = 1
                         
-            self.force[:] = x, y
+            self.force[:] = x*8, y*10

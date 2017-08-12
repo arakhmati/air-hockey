@@ -13,7 +13,8 @@ class Line(object):
         return (x2 - x1) * (y2 + y1)
     
     def __init__(self, p1, p2):
-        self.p1, self.p2 = np.array(p1, dtype=np.float32), np.array(p2, dtype=np.float32)
+        self.p1 = np.copy(p1)
+        self.p2 = np.copy(p2)
 
         sum_over_edges  = Line._edge_sum(self.p1, Line.center_point)
         sum_over_edges += Line._edge_sum(Line.center_point, self.p2)
@@ -55,7 +56,7 @@ class Line(object):
         for i in range(len(points)-1):
             lines.append(Line(points[i], points[i+1]))          
         
-        return lines, points
+        return lines
     
     def __repr__(self):
         return str(self.p1) + ' ' + str(self.p2)

@@ -1,62 +1,74 @@
+import numpy as np
 import vector as V  
         
-class Collision(object):        
+class Collision(object):   
+    
     @staticmethod
-    def _resolve_circle_circle_velocity(dt, bodies, restitution):
-        
-        position_0 = bodies[0].position
-        position_1 = bodies[1].position
+    def _resolve_circle_circle_velocity(bodies, normal, restitution):
         velocity_0 = bodies[0].get_velocity()
         velocity_1 = bodies[1].get_velocity()
-        if (velocity_0 - velocity_1).dot(position_0 - position_1) > 0:
-            return
-#            
-        mass_0 = bodies[0].get_mass()
-        mass_1 = bodies[1].get_mass()
-        total_mass = mass_0 + mass_1
-        new_velocity_0 = (velocity_0 * (mass_0 - mass_1) + (velocity_1 * 2 * mass_1)) / (total_mass)
-        new_velocity_1 = (velocity_1 * (mass_1 - mass_0) + (velocity_0 * 2 * mass_0)) / (total_mass)
+        inverse_mass_0 = bodies[0].get_inverse_mass()
+        inverse_mass_1 = bodies[1].get_inverse_mass()
         
-        new_velocity_0 *= restitution
-        new_velocity_1 *= restitution
+        relative_velocity  = np.copy(velocity_0)
+        relative_velocity -= velocity_1
+        separating_velocity = relative_velocity.dot(normal)
+        if separating_velocity >= 0.0: return
+        
+        new_separating_velocity = -separating_velocity * restitution
+        
+        delta_velocity = new_separating_velocity - separating_velocity
+        
+        total_inverse_mass  = inverse_mass_0
+        total_inverse_mass += inverse_mass_1
+        
+        impulse = delta_velocity * total_inverse_mass # FIXED BUG : Textbook had '/' instead of '*' 
+        impulse_per_inverse_mass = normal * impulse
+        
+        if inverse_mass_0 == inverse_mass_1:
+            new_velocity_0 = velocity_0 + impulse_per_inverse_mass *  inverse_mass_0
+            new_velocity_1 = velocity_1 + impulse_per_inverse_mass * -inverse_mass_1
+        elif inverse_mass_0 < inverse_mass_1:
+            new_velocity_0 = np.zeros(2, dtype=np.float32)
+            new_velocity_1 = velocity_1 + impulse_per_inverse_mass * -inverse_mass_1
+        else:
+            new_velocity_0 = velocity_0 + impulse_per_inverse_mass *  inverse_mass_0
+            new_velocity_1 = np.zeros(2, dtype=np.float32)
         
         bodies[0].set_velocity(new_velocity_0)
         bodies[1].set_velocity(new_velocity_1)
-        
-        bodies[0].position += bodies[0].get_velocity() * dt;
-        bodies[1].position += bodies[1].get_velocity() * dt;
     
     @staticmethod
-    def _resolve_circle_circle_interpenetration(dt, bodies, normal, penetration):
+    def _resolve_circle_circle_interpenetration(bodies, normal, penetration):
         if penetration <= 0.0: return
         
         total_inverse_mass  = bodies[0].get_inverse_mass() 
         total_inverse_mass += bodies[1].get_inverse_mass()
-        if total_inverse_mass <= 0.0: return
         
         disposition_per_inverse_mass = normal * (penetration / total_inverse_mass)
         bodies[0].position += disposition_per_inverse_mass *  bodies[0].get_inverse_mass()
         bodies[1].position += disposition_per_inverse_mass * -bodies[1].get_inverse_mass()
         
     @staticmethod
-    def circle_circle(dt, bodies, restitution):
-        position_0 = bodies[0].position
-        position_1 = bodies[1].position
+    def circle_circle(bodies):
+        restitution = max(bodies[0].body_restitution, bodies[1].body_restitution)
+        
+        position_0   = bodies[0].position
+        position_1   = bodies[1].position
         total_radius = bodies[0].radius + bodies[1].radius
         
-        middle = position_0 - position_1
-        distance = V.magnitude(middle)
-        
+        direction = position_0 - position_1
+        distance = V.magnitude(direction)
         if distance <= 0.0 or distance >= (total_radius): return
         
-        normal = middle * (1.0/distance)
+        normal      = V.normalize(direction)
         penetration = total_radius - distance
         
-        Collision._resolve_circle_circle_velocity(dt, bodies, restitution)
-        Collision._resolve_circle_circle_interpenetration(dt, bodies, normal, penetration)
+        Collision._resolve_circle_circle_velocity(bodies, normal, restitution)
+        Collision._resolve_circle_circle_interpenetration(bodies, normal, penetration)
         
     @staticmethod
-    def circle_line(body, line):        
+    def circle_line(body, line, screen=None):        
         relative_position = body.position - line.p1
     
         projected_vector = line.direction * relative_position.dot(line.direction)
@@ -76,7 +88,7 @@ class Collision(object):
         distance = V.magnitude(body.position - closest_point)
         if distance < body.radius:
             
-            # Resovle interpenetration
+            # Resolve interpenetration
             orthogonal_vector = relative_position - projected_vector
             penetration = body.radius - V.magnitude(orthogonal_vector)
             disposition = V.normalize(orthogonal_vector) * penetration
@@ -85,3 +97,6 @@ class Collision(object):
             # Resolve Velocity
             velocity = body.get_velocity() - line.normal * body.get_velocity().dot(line.normal) * 2 * body.wall_restitution
             body.set_velocity(velocity)
+            
+        
+        return closest_point

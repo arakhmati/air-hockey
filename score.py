@@ -2,7 +2,7 @@ import numpy as np
 import dimensions as D
 
 class Score(object):
-    puck_default_top_position    = np.array(D.puck_default_top_position, dtype=np.float32)
+    puck_default_top_position    = np.array(D.puck_default_top_position,    dtype=np.float32)
     puck_default_bottom_position = np.array(D.puck_default_bottom_position, dtype=np.float32)
     
     def __init__(self):

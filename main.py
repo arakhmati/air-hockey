@@ -1,78 +1,54 @@
 import os
+import cv2
 import glob
-import time
 import pygame
 import itertools
 import numpy as np
-import scipy.misc
-import matplotlib.pyplot as plt
+import progressbar
 
 from environment import Environment
 import dimensions as D
 
-project_path = '/home/ahmed/Documents/41X'
-
-#while True:
-#    pygame.event.get()
-#    keys = pygame.key.get_pressed()
-#    if keys[pygame.K_w]:
-#        break  
+project_path = os.path.dirname(os.path.realpath(__file__)).replace('air_hockey', '')
 
 if __name__ == "__main__":
-#def main():
-#    games = glob.glob(project_path + '/supervised_data/*')
-#    games = list(filter(lambda x: 'npz' not in x, games))
-#    
-#    if len(games) == 0:
-#        new_game = project_path + ('/supervised_data/game_%06d' % 0)
-#    else:
-#        games.sort()
-#        latest_game = games[-1]
-#        latest_game_index = int(latest_game[-6:])
-#        new_game = latest_game[:-6] + ('%06d' % (latest_game_index+1))
-#    os.mkdir(new_game)
+    screen_mode = False
+    number_of_frames = 2000
     
     pygame.init()
-    
-    clock = pygame.time.Clock()
-    screen = pygame.display.set_mode((D.width, D.height))
-    
-#    screen = pygame.Surface((D.width, D.height)) 
+    if not screen_mode:
+        screen = None
+        data = np.zeros((number_of_frames, 4, 2), dtype=np.float32)
+        bar = progressbar.ProgressBar(max_value=number_of_frames)
+    elif screen_mode:
+        screen = pygame.display.set_mode((D.width, D.height))
+        number_of_frames = -1
     
     env = Environment()
-    
-#    data = np.zeros((100, 450, 800, 3), dtype=np.uint8)
 
     done = False
     for i in itertools.count():
-#        if i == 3600:
-#            break
-        
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                done = True
-        if done: break
-        dt = clock.tick_busy_loop(60)
-        tic = time.time()
-        x, y = env.step(dt)
-        env.draw(screen)
-        
-#        data[i] = pygame.surfarray.array3d(screen)
-        
-        pygame.display.update()
-        toc = time.time()
-        print(toc-tic)
-#        pygame.image.save(surface, new_game + '/%08d_%d_%d.jpg' % (i, x, y))
-#        import matplotlib.pyplot as plt
-#        array = pygame.surfarray.array3d(screen)
-#        plt.imshow(array)
-#        plt.show()
+        if i == number_of_frames: break
+        if any([event.type == pygame.QUIT for event in pygame.event.get()]): break
+        observations = env.step()
+        if screen is None: 
+            data[i] = observations
+            bar.update(i)
+        if screen is not None: 
+            env.render(screen)
+            pygame.display.update()
+    
+    if screen is None:
+        if os.path.isfile('game.avi'): os.remove('game.avi')
+        writer = cv2.VideoWriter('game.avi', cv2.VideoWriter_fourcc(*'PIM1'), 60, (D.width, D.height))
+        screen = pygame.Surface((D.width, D.height)) 
+        bar.init()
+        for i, observations in enumerate(data):
+            env.render_observations(screen, observations)
+            x = pygame.surfarray.array3d(screen).astype(np.uint8)
+            x = x[:, :, ::-1] # Flip from BGR to RGB
+            x = x.transpose((1,0,2)) # Transpose to make it portrait
+            writer.write(x)
+            bar.update(i)
         
     pygame.quit ()
-    
-#    print('saving data')
-#    for i in range(len(data)):
-#        scipy.misc.imsave('%04d.jpg' % i, data[i])
-#    
-#import cProfile as profile
-#profile.run('main()')

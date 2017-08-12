@@ -6,25 +6,25 @@ import physical_constants as P
 
 class ForceRegistry(object):
     class Registry(object):
-        def __init__(self, rigid_body, force_generator):
-            self.rigid_body = rigid_body
+        def __init__(self, body, force_generator):
+            self.body = body
             self.force_generator = force_generator
     
     def __init__(self):
         self.registrations = set()
     
-    def add(self, rigid_body, force_generator):
-        self.registrations.add(self.Registry(rigid_body, force_generator))
+    def add(self, body, force_generator):
+        self.registrations.add(self.Registry(body, force_generator))
         
-    def remove(self, rigid_body, force_generator):
+    def remove(self, body, force_generator):
         for registration in self.registrations:
-            if registration.particle == rigid_body and registration.force_generator == force_generator:
+            if registration.particle == body and registration.force_generator == force_generator:
                 self.registrations.remove(registration)
                 break
         
-    def update_forces(self, dt):
+    def update_forces(self):
         for registration in self.registrations:
-            registration.force_generator.update_force(registration.rigid_body, dt)
+            registration.force_generator.update_force(registration.body)
                 
     def clear(self):
         self.registrations = {}
@@ -34,7 +34,7 @@ class ForceGenerator(ABC):
         self.factor = factor
     
     @abstractmethod
-    def update_force(self, rigid_body, dt):
+    def update_force(self, body):
         pass
     
 class ControlledForce(ForceGenerator):
@@ -42,8 +42,8 @@ class ControlledForce(ForceGenerator):
         super().__init__()
         self.controller = controller
         
-    def update_force(self, rigid_body, dt):
-        rigid_body.add_force(self.controller.force * self.factor)
+    def update_force(self, body):
+        body.add_force(self.controller.force * self.factor)
         
 class RandomForce(ForceGenerator):  
     def __init__(self, factor=P.force_multiplier):
@@ -52,13 +52,13 @@ class RandomForce(ForceGenerator):
         self.limit = 10
         self.force = np.array([0, 0], dtype=np.float32)
         
-    def update_force(self, rigid_body, dt):
+    def update_force(self, body):
         import random
         if self.count == self.limit:
            self.force[:] = random.randrange(-1, 2, 1)*self.factor, random.randrange(-1, 2, 1)*self.factor
            self.count = 0
         self.count += 1
-        rigid_body.add_force(self.force)
+        body.add_force(self.force)
         
 class KeyboardForce(ForceGenerator):  
     def __init__(self, factor=P.force_multiplier, player=0):
@@ -66,7 +66,7 @@ class KeyboardForce(ForceGenerator):
         self.player = player
         self.force = np.array([0, 0], dtype=np.float32)
         
-    def update_force(self, rigid_body, dt):
+    def update_force(self, body):
         if self.player == 0:
             keys = pygame.key.get_pressed()  
             if   keys[pygame.K_a]: x = -1  
@@ -85,4 +85,4 @@ class KeyboardForce(ForceGenerator):
             else:                      y =  0
             
         self.force[:] = x*self.factor, y*self.factor
-        rigid_body.add_force(self.force)
+        body.add_force(self.force)

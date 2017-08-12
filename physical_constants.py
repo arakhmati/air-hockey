@@ -1,15 +1,15 @@
-mallet_maximum_speed = 2
-puck_maximum_speed = 3
+mallet_maximum_speed = 8
+puck_maximum_speed   = 15
 
-puck_mass = 1.0
-mallet_mass = 15.0
+puck_mass   = 1
+mallet_mass = 15
 
 friction = 0.9995
 
-force_multiplier = 1.0/50
+force_multiplier = 1
 
 mallet_mallet_restitution = 0.1
-puck_mallet_restitution = 0.9
+puck_mallet_restitution   = 0.9
 
-mallet_wall_restitution = 0.2
-puck_wall_restitution = 0.95
+mallet_wall_restitution   = 0.3
+puck_wall_restitution     = 0.95
