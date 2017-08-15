@@ -94,7 +94,12 @@ class AirHockeyEnv(object):
         
         self.score = Score(self.dim)
     
-        self.table_sprite         = pygame.image.load(dir_path + '/sprites/table.png')
+        # Diversify the data
+        if np.random.randint(2):
+            self.table_sprite = pygame.image.load(dir_path + '/sprites/table.png')
+        else:
+            self.table_sprite = pygame.image.load(dir_path + '/sprites/flipped_table.png')
+            
         self.puck_sprite          = pygame.image.load(dir_path + '/sprites/puck.png')
         self.top_mallet_sprite    = pygame.image.load(dir_path + '/sprites/top_mallet.png')
         self.bottom_mallet_sprite = pygame.image.load(dir_path + '/sprites/bottom_mallet.png')
