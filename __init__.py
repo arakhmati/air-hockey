@@ -1,1 +1,1 @@
-from .air_hockey import AirHockey
+from .air_hockey import AirHockeyEnv

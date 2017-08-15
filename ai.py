@@ -49,60 +49,11 @@ class RuleBasedAI(AI):
             
             
         if self.mode is 'top':
-            
             intersects = self.intersects((puck_px, puck_py), (puck_vx, puck_vy), [self.dim.post_top_left, self.dim.post_top_right])
             if intersects != None:
                 goal_px, goal_py = intersects[0]
             else:
                 goal_px, goal_py = (self.dim.center[0], self.dim.rink_top)
-            
-            x, y = 0, 0
-            reachable = self.dim.rink_top <= puck_py <=  self.dim.center[1]
-            if not reachable:
-                x = random.randrange(-1, 2, 1)
-                y = random.randrange(-1, 2, 1)
-                
-                if x == -1 and px < self.dim.rink_left  + self.mallet.radius + self.dim.goalpost_length//2: x = 1
-                elif x == 1 and px > self.dim.rink_right - self.mallet.radius - self.dim.goalpost_length//2: x = -1
-                if y == 1 and py > (self.dim.center[1] - self.dim.goalpost_length): y = -1
-                
-            else:
-                if puck_vy > 0:
-                    if puck_px < px:
-                        x = -1
-                    if puck_px > px:
-                        x = 1
-                    if puck_py < py:
-                        y = -1
-                    if puck_py > py:
-                        y = 1
-                else:
-                    too_fast = V.magnitude(puck.get_velocity()) > 0.8*P.puck_maximum_speed 
-                    
-                    if too_fast:
-                        diff_px = goal_px - px
-                        if abs(diff_px) < 5: x = 0
-                        elif diff_px > 0:    x = 1
-                        else:                x = -1
-                        x *= min(abs(diff_px)/20, 1)
-                    
-                        diff_py = goal_py - py
-                        if abs(diff_py) < 5: y = 0
-                        elif diff_py > 0:    y = 1
-                        else:                y = -1
-                        y *= min(abs(diff_py)/20, 1)
-                    else:
-                        if puck_px < px:
-                            x = -1
-                        if puck_px > px:
-                            x = 1
-                        if puck_py < py:
-                            y = -1
-                        if puck_py > py:
-                            y = 1
-                            
-            self.force[:] = x, y
-    
         elif self.mode == 'bottom':
             intersects = self.intersects((puck_px, puck_py), (puck_vx, puck_vy), [self.dim.post_bottom_left, self.dim.post_bottom_right])
             if intersects != None:
@@ -110,49 +61,45 @@ class RuleBasedAI(AI):
             else:
                 goal_px, goal_py = (self.dim.center[0], self.dim.rink_bottom)
             
-            x, y = 0, 0
+        if self.mode is 'top':
+            reachable = self.dim.rink_top <= puck_py <=  self.dim.center[1]
+        elif self.mode == 'bottom':
             reachable = self.dim.center[1] <= puck_py <=  self.dim.rink_bottom
-            if not reachable:
-                x = random.randrange(-1, 2, 1)
-                y = random.randrange(-1, 2, 1)
-                
-                if x == -1 and px < self.dim.rink_left  + self.mallet.radius + self.dim.goalpost_length//2: x = 1
-                elif x == 1 and px > self.dim.rink_right - self.mallet.radius - self.dim.goalpost_length//2: x = -1
+               
+        x, y = 0, 0
+        if not reachable:
+            x = random.randrange(-1, 2, 1)
+            y = random.randrange(-1, 2, 1)
+            if   x == -1 and px < self.dim.rink_left  + self.mallet.radius + self.dim.goalpost_length//2: x =  1
+            elif x ==  1 and px > self.dim.rink_right - self.mallet.radius - self.dim.goalpost_length//2: x = -1
+            if self.mode is 'top':
+                if y == 1 and py > (self.dim.center[1] - self.dim.goalpost_length): y = -1  
+            elif self.mode == 'bottom':
                 if y == -1 and py < (self.dim.center[1] + self.dim.goalpost_length): y = 1
-                
+        else:
+            if puck_vy < 0:
+                if puck_px < px: x = -1
+                if puck_px > px: x = 1
+                if puck_py < py: y = -1
+                if puck_py > py: y = 1
             else:
-                if puck_vy < 0:
-                    if puck_px < px:
-                        x = -1
-                    if puck_px > px:
-                        x = 1
-                    if puck_py < py:
-                        y = -1
-                    if puck_py > py:
-                        y = 1
+                too_fast = V.magnitude(puck.get_velocity()) > 0.8*P.puck_maximum_speed 
+                if too_fast:
+                    diff_px = goal_px - px
+                    if abs(diff_px) < 5: x = 0
+                    elif diff_px > 0:    x = 1
+                    else:                x = -1
+                    x *= min(abs(diff_px)/20, 1)
+                
+                    diff_py = goal_py - py
+                    if abs(diff_py) < 5: y = 0
+                    elif diff_py > 0:    y = 1
+                    else:                y = -1
+                    y *= min(abs(diff_py)/20, 1)
                 else:
-                    too_fast = V.magnitude(puck.get_velocity()) > 0.8*P.puck_maximum_speed 
-                    
-                    if too_fast:
-                        diff_px = goal_px - px
-                        if abs(diff_px) < 5: x = 0
-                        elif diff_px > 0:    x = 1
-                        else:                x = -1
-                        x *= min(abs(diff_px)/20, 1)
-                    
-                        diff_py = goal_py - py
-                        if abs(diff_py) < 5: y = 0
-                        elif diff_py > 0:    y = 1
-                        else:                y = -1
-                        y *= min(abs(diff_py)/20, 1)
-                    else:
-                        if puck_px < px:
-                            x = -1
-                        if puck_px > px:
-                            x = 1
-                        if puck_py < py:
-                            y = -1
-                        if puck_py > py:
-                            y = 1
+                    if puck_px < px: x = -1
+                    if puck_px > px: x = 1
+                    if puck_py < py: y = -1
+                    if puck_py > py: y = 1
                         
-            self.force[:] = x, y
+        self.force[:] = x, y

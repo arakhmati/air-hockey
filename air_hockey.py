@@ -15,18 +15,15 @@ from score import Score
 import utils
 import colors as C
           
-class AirHockey(object):
-    def __init__(self, visualize=0, dim=Dimensions()):
+class AirHockeyEnv(object):
+    def __init__(self, dim=Dimensions()):
         
         pygame.init()
         
-        self.visualize = visualize
         self.dim = dim
         
-        if self.visualize:
-            self.screen = pygame.display.set_mode((self.dim.width, self.dim.height))
-        else:
-            self.screen = pygame.Surface((self.dim.width, self.dim.height), depth=8)
+        self.screen = pygame.display.set_mode((self.dim.width, self.dim.height))
+        pygame.display.set_caption('Air Hockey')
             
             
         self.actions = np.zeros(6, dtype=np.int8)
@@ -169,9 +166,7 @@ class AirHockey(object):
      
     def _render(self, debug=0):                
         self._draw(self.puck.position, self.top_mallet.position, self.bottom_mallet.position, debug)
-
-        if self.visualize:
-            pygame.display.update()
+        pygame.display.update()
             
     
         
@@ -180,6 +175,7 @@ class AirHockey(object):
         if actions is not None:
             x = np.argmax(actions[:3]) - 1
             y = np.argmax(actions[3:]) - 1
+            self.bottom_ai.force[:] = x, y
         
         for i in range(n_steps):
         
@@ -187,12 +183,10 @@ class AirHockey(object):
             self.top_ai.move()
             if actions is None:
                 self.bottom_ai.move()
-                x, y = self.bottom_ai.force
-                print(x, y)
                 
             # Update forces with AI moves
             self.top_ai_force.set_force(self.top_ai.force)
-            self.bottom_ai_force.set_force((x, y))
+            self.bottom_ai_force.set_force(self.bottom_ai.force)
             
             # Clear forces from last frame
             for body in self.bodies:
@@ -219,24 +213,30 @@ class AirHockey(object):
             
         self._render()
         np.copyto(self.observations, pygame.surfarray.array3d(self.screen))
-        
-        observations =  self.observations[:, self.dim.vertical_margin:-self.dim.vertical_margin, :].transpose((1,0,2))
-        observations = cv2.resize(observations, (128, 128)).reshape((1,128,128,3))
             
-        return observations
+        return self.observations
         
 if __name__ == "__main__":
     
-    env = AirHockey(visualize=True)
+    env = AirHockeyEnv()
     
     from keras.models import load_model
-    model = load_model('../model.h5')
+    model = load_model('../supervised_learning/model.h5')
 
     actions = np.zeros(6, dtype=np.float32)
+    
+    video_file = 'demo.avi'
+    if os.path.isfile(video_file): os.remove(video_file)
+    writer = cv2.VideoWriter(video_file, cv2.VideoWriter_fourcc(*'PIM1'), 30, 
+                             (env.dim.width, env.dim.height-env.dim.vertical_margin*2))
     
     while True:
         if any([event.type == pygame.QUIT for event in pygame.event.get()]): break
         observations = env.step(actions)
+        observations =  observations[:, env.dim.vertical_margin:-env.dim.vertical_margin, :].transpose((1,0,2))
+        writer.write(observations[:,:,::-1])
+        observations = cv2.resize(observations, (128, 128)).reshape((1,128,128,3))
         observations = (observations.astype(np.float32)-128)/128
+        
         actions[:] = np.array(model.predict(observations)).flatten()
     pygame.quit ()
