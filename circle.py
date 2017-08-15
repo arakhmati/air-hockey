@@ -56,13 +56,11 @@ class Circle(ABC):
         self._velocity[:] = 0 
         
 class Puck(Circle):
-    def __init__(self, name, position, radius, borders):
+    def __init__(self, position, radius, borders):
         super().__init__(position, radius, borders, P.puck_mass, 
              P.puck_maximum_speed, P.puck_friction, P.mallet_mallet_restitution, P.puck_wall_restitution)
-        self.name = name
         
 class Mallet(Circle):
-    def __init__(self, name, position, radius, borders):
+    def __init__(self, position, radius, borders):
         super().__init__(position, radius, borders, P.mallet_mass, 
              P.mallet_maximum_speed, P.mallet_friction, P.puck_mallet_restitution, P.mallet_wall_restitution)
-        self.name = name

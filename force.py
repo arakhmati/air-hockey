@@ -38,12 +38,15 @@ class ForceGenerator(ABC):
         pass
     
 class ControlledForce(ForceGenerator):
-    def __init__(self, controller):
+    def __init__(self):
         super().__init__()
-        self.controller = controller
+        self.force = np.zeros(2, dtype=np.float32)
+        
+    def set_force(self, force):
+        self.force = force
         
     def update_force(self, body):
-        body.add_force(self.controller.force * self.factor)
+        body.add_force(self.force * self.factor)
         
 class RandomForce(ForceGenerator):  
     def __init__(self, factor=P.force_multiplier):

@@ -3,7 +3,6 @@ import numpy as np
 import random
 
 import vector as V
-import dimensions as D
 import physical_constants as P
 
 class AI(ABC):
@@ -16,11 +15,12 @@ class RuleBasedAI(AI):
         pass
     
 class MachineLearningAI(AI):
-    def __init__(self, mallet, puck, mode):
+    def __init__(self, mallet, puck, mode, dim):
         self.mallet = mallet
         self.puck = puck
         self.mode = mode
         self.force = np.zeros(2, dtype=np.float32)
+        self.dim = dim
         
     def intersects(self, origin, direction, line):
         origin = np.array(origin, dtype=np.float32)
@@ -50,21 +50,21 @@ class MachineLearningAI(AI):
             
         if self.mode is 'top':
             
-            intersects = self.intersects((puck_px, puck_py), (puck_vx, puck_vy), [D.post_top_left, D.post_top_right])
+            intersects = self.intersects((puck_px, puck_py), (puck_vx, puck_vy), [self.dim.post_top_left, self.dim.post_top_right])
             if intersects != None:
                 goal_px, goal_py = intersects[0]
             else:
-                goal_px, goal_py = (D.center[0], D.rink_top)
+                goal_px, goal_py = (self.dim.center[0], self.dim.rink_top)
             
             x, y = 0, 0
-            reachable = D.rink_top <= puck_py <=  D.center[1]
+            reachable = self.dim.rink_top <= puck_py <=  self.dim.center[1]
             if not reachable:
                 x = random.randrange(-1, 2, 1)
                 y = random.randrange(-1, 2, 1)
                 
-                if x == -1 and px < D.rink_left  + self.mallet.radius + D.goalpost_length//2: x = 1
-                elif x == 1 and px > D.rink_right - self.mallet.radius - D.goalpost_length//2: x = -1
-                if y == 1 and py > (D.center[1] - D.goalpost_length): y = -1
+                if x == -1 and px < self.dim.rink_left  + self.mallet.radius + self.dim.goalpost_length//2: x = 1
+                elif x == 1 and px > self.dim.rink_right - self.mallet.radius - self.dim.goalpost_length//2: x = -1
+                if y == 1 and py > (self.dim.center[1] - self.dim.goalpost_length): y = -1
                 
             else:
                 if puck_vy > 0:
@@ -104,21 +104,21 @@ class MachineLearningAI(AI):
             self.force[:] = x, y
     
         elif self.mode == 'bottom':
-            intersects = self.intersects((puck_px, puck_py), (puck_vx, puck_vy), [D.post_bottom_left, D.post_bottom_right])
+            intersects = self.intersects((puck_px, puck_py), (puck_vx, puck_vy), [self.dim.post_bottom_left, self.dim.post_bottom_right])
             if intersects != None:
                 goal_px, goal_py = intersects[0]
             else:
-                goal_px, goal_py = (D.center[0], D.rink_bottom)
+                goal_px, goal_py = (self.dim.center[0], self.dim.rink_bottom)
             
             x, y = 0, 0
-            reachable = D.center[1] <= puck_py <=  D.rink_bottom
+            reachable = self.dim.center[1] <= puck_py <=  self.dim.rink_bottom
             if not reachable:
                 x = random.randrange(-1, 2, 1)
                 y = random.randrange(-1, 2, 1)
                 
-                if x == -1 and px < D.rink_left  + self.mallet.radius + D.goalpost_length//2: x = 1
-                elif x == 1 and px > D.rink_right - self.mallet.radius - D.goalpost_length//2: x = -1
-                if y == -1 and py < (D.center[1] + D.goalpost_length): y = 1
+                if x == -1 and px < self.dim.rink_left  + self.mallet.radius + self.dim.goalpost_length//2: x = 1
+                elif x == 1 and px > self.dim.rink_right - self.mallet.radius - self.dim.goalpost_length//2: x = -1
+                if y == -1 and py < (self.dim.center[1] + self.dim.goalpost_length): y = 1
                 
             else:
                 if puck_vy < 0:
