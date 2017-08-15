@@ -43,7 +43,7 @@ class ControlledForce(ForceGenerator):
         self.force = np.zeros(2, dtype=np.float32)
         
     def set_force(self, force):
-        self.force = force
+        self.force[:] = force
         
     def update_force(self, body):
         body.add_force(self.force * self.factor)

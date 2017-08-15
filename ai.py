@@ -10,11 +10,11 @@ class AI(ABC):
     def move(self):
         pass
 
-class RuleBasedAI(AI):
+class MachineLearningAI(AI):
     def move(self):
         pass
     
-class MachineLearningAI(AI):
+class RuleBasedAI(AI):
     def __init__(self, mallet, puck, mode, dim):
         self.mallet = mallet
         self.puck = puck
