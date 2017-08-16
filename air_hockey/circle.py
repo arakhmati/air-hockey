@@ -1,8 +1,7 @@
 import numpy as np
 from abc import ABC
-
-import vector as V
-import physical_constants as P
+import air_hockey.vector as V
+import air_hockey.physical_constants as P
     
 class Circle(ABC):
     def __init__(self, position, radius, borders, mass, maximum_speed, friction, body_restitution, wall_restitution):

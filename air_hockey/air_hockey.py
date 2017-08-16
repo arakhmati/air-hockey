@@ -5,15 +5,15 @@ import cv2
 import os 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-from dimensions import Dimensions
-from circle import Puck, Mallet
-from force import ForceRegistry, RandomForce, PlayerForce, ControlledForce
-from collision import Collision
-from ai import RuleBasedAI, MachineLearningAI
-from line import Line
-from score import Score
-import utils
-import colors as C
+from air_hockey.dimensions import Dimensions
+from air_hockey.circle import Puck, Mallet
+from air_hockey.force import ForceRegistry, RandomForce, PlayerForce, ControlledForce
+from air_hockey.collision import Collision
+from air_hockey.ai import RuleBasedAI, MachineLearningAI
+from air_hockey.line import Line
+from air_hockey.score import Score
+from air_hockey.utils import flatten_list
+import air_hockey.colors as C
           
 class AirHockeyEnv(object):
     def __init__(self, dim=Dimensions()):
@@ -51,7 +51,7 @@ class AirHockeyEnv(object):
         bottom_left_corner  = Line.generate_bezier_curve(self.dim.arc_bottom_left,  self.dim)
         bottom_right_corner = Line.generate_bezier_curve(self.dim.arc_bottom_right, self.dim)
         
-        self.borders = utils.flatten_list([
+        self.borders = flatten_list([
                         top_left_wall, top_right_wall,
                         bottom_left_wall, bottom_right_wall,
                         left_wall, right_wall,
@@ -59,7 +59,7 @@ class AirHockeyEnv(object):
                         bottom_left_corner, bottom_right_corner])
         
         self.puck = Puck(self.dim.center, self.dim.puck_radius,
-                          utils.flatten_list([
+                          flatten_list([
                           top_left_wall, top_right_wall,
                           bottom_left_wall, bottom_right_wall,
                           left_wall, right_wall,
@@ -67,13 +67,13 @@ class AirHockeyEnv(object):
                           bottom_left_corner, bottom_right_corner]))
         
         self.top_mallet = Mallet(self.dim.top_mallet_position, self.dim.mallet_radius,
-                          utils.flatten_list([
+                          flatten_list([
                           top_wall, center_line,
                           left_wall, right_wall,
                           top_left_corner, top_right_corner]))
         
         self.bottom_mallet = Mallet(self.dim.bottom_mallet_position, self.dim.mallet_radius,
-                          utils.flatten_list([
+                          flatten_list([
                           center_line, bottom_wall,
                           left_wall, right_wall,
                           bottom_left_corner, bottom_right_corner]))

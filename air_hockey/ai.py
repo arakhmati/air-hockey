@@ -1,9 +1,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
-import random
-
-import vector as V
-import physical_constants as P
+import air_hockey.vector as V
+import air_hockey.physical_constants as P
 
 class AI(ABC):
     @abstractmethod
@@ -68,8 +66,8 @@ class RuleBasedAI(AI):
                
         x, y = 0, 0
         if not reachable:
-            x = random.randrange(-1, 2, 1)
-            y = random.randrange(-1, 2, 1)
+            x = np.random.randint(-1, 2)
+            y = np.random.randint(-1, 2)
             if   x == -1 and px < self.dim.rink_left  + self.mallet.radius + self.dim.goalpost_length//2: x =  1
             elif x ==  1 and px > self.dim.rink_right - self.mallet.radius - self.dim.goalpost_length//2: x = -1
             if self.mode is 'top':

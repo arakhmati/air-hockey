@@ -1,8 +1,7 @@
 import pygame
 import numpy as np
 from abc import ABC, abstractmethod
-
-import physical_constants as P
+import air_hockey.physical_constants as P
 
 class ForceRegistry(object):
     class Registry(object):

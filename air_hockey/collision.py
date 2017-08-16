@@ -1,5 +1,5 @@
 import numpy as np
-import vector as V  
+import air_hockey.vector as V  
         
 class Collision(object):   
     
