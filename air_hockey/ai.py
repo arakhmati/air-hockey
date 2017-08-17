@@ -8,17 +8,13 @@ class AI(ABC):
     def move(self):
         pass
 
-class MachineLearningAI(AI):
-    def move(self):
-        pass
-    
 class RuleBasedAI(AI):
     def __init__(self, mallet, puck, mode, dim):
         self.mallet = mallet
         self.puck = puck
         self.mode = mode
-        self.force = np.zeros(2, dtype=np.float32)
         self.dim = dim
+        self.force = np.zeros(2, dtype=np.float32)
         
     def intersects(self, origin, direction, line):
         origin = np.array(origin, dtype=np.float32)
@@ -83,17 +79,14 @@ class RuleBasedAI(AI):
             else:
                 too_fast = V.magnitude(puck.get_velocity()) > 0.8*P.puck_maximum_speed 
                 if too_fast:
-                    diff_px = goal_px - px
-                    if abs(diff_px) < 5: x = 0
-                    elif diff_px > 0:    x = 1
-                    else:                x = -1
-                    x *= min(abs(diff_px)/20, 1)
-                
-                    diff_py = goal_py - py
-                    if abs(diff_py) < 5: y = 0
-                    elif diff_py > 0:    y = 1
-                    else:                y = -1
-                    y *= min(abs(diff_py)/20, 1)
+                    def save_goal(goal, p, x):
+                        diff = goal - p
+                        if abs(diff) < 5: x = 0
+                        elif diff > 0:    x = 1
+                        else:             x = -1
+                        return x * min(abs(diff)/20, 1)
+                    x = save_goal(goal_px, px, x)
+                    y = save_goal(goal_py, py, y)
                 else:
                     if puck_px < px: x = -1
                     if puck_px > px: x = 1

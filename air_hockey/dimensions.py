@@ -66,8 +66,8 @@ class Dimensions(object):
         self.post_bottom_left  = np.array([self.center[0] - self.half_goalpost_length, self.rink_bottom], dtype=np.float32)
         self.post_bottom_right = np.array([self.center[0] + self.half_goalpost_length, self.rink_bottom], dtype=np.float32)
         
-        self.puck_default_top_position    = np.array([self.center[0], self.center[1] - self.puck_offset_multiplier * self.puck_radius], dtype=np.float32)
-        self.puck_default_bottom_position = np.array([self.center[0], self.center[1] + self.puck_offset_multiplier * self.puck_radius], dtype=np.float32)
+        self.puck_default_position_top    = np.array([self.center[0], self.center[1] - self.puck_offset_multiplier * self.puck_radius], dtype=np.float32)
+        self.puck_default_position_bottom = np.array([self.center[0], self.center[1] + self.puck_offset_multiplier * self.puck_radius], dtype=np.float32)
         self.top_mallet_position    = np.array([self.center[0], self.rink_top    + self.mallet_offset_multiplier * self.mallet_radius], dtype=np.float32)
         self.bottom_mallet_position = np.array([self.center[0], self.rink_bottom - self.mallet_offset_multiplier * self.mallet_radius], dtype=np.float32)
         

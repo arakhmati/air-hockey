@@ -59,13 +59,15 @@ class Collision(object):
         
         direction = position_0 - position_1
         distance = V.magnitude(direction)
-        if distance <= 0.0 or distance >= (total_radius): return
+        if distance <= 0.0 or distance >= (total_radius): return False
         
         normal      = V.normalize(direction)
         penetration = total_radius - distance
         
         Collision._resolve_circle_circle_velocity(bodies, normal, restitution)
         Collision._resolve_circle_circle_interpenetration(bodies, normal, penetration)
+        
+        return True
         
     @staticmethod
     def circle_line(body, line, screen=None):        

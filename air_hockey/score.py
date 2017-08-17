@@ -12,11 +12,11 @@ class Score(object):
         scored = ''
         if y < self.dim.top_goal:
             self._score['bottom'] += 1
-            np.copyto(puck.default_position, self.dim.puck_default_bottom_position)
+            np.copyto(puck.default_position, self.dim.puck_default_position_bottom)
             scored = 'bottom'
         elif y > self.dim.bottom_goal:
             self._score['top'] += 1
-            np.copyto(puck.default_position, self.dim.puck_default_top_position)
+            np.copyto(puck.default_position, self.dim.puck_default_position_top)
             scored = 'top'
         return scored
             
