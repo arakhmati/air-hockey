@@ -3,12 +3,7 @@ import numpy as np
 import air_hockey.vector as V
 import air_hockey.physical_constants as P
 
-class AI(ABC):
-    @abstractmethod
-    def move(self):
-        pass
-
-class RuleBasedAI(AI):
+class AI(object):
     def __init__(self, mallet, puck, mode, dim):
         self.mallet = mallet
         self.puck = puck

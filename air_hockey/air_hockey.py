@@ -9,7 +9,7 @@ from air_hockey.dimensions import Dimensions
 from air_hockey.circle import Puck, Mallet
 from air_hockey.force import ForceRegistry, RandomForce, PlayerForce, ControlledForce
 from air_hockey.collision import Collision
-import air_hockey.ai as ai
+from air_hockey.ai import AI
 from air_hockey.line import Line
 from air_hockey.score import Score
 from air_hockey.utils import flatten_list
@@ -33,7 +33,7 @@ class AirHockey(object):
                                      (self.dim.width, self.dim.height-self.dim.vertical_margin*2))
         
         
-        self.frames = np.zeros((self.dim.width, self.dim.height, 3), dtype=np.uint8)
+        self.frame = np.zeros((self.dim.width, self.dim.height, 3), dtype=np.uint8)
         self.cropped_frame = np.zeros((self.dim.height-2*self.dim.vertical_margin, self.dim.width, 3), dtype=np.uint8)
         
         self.state = np.zeros((128, 128, 3), dtype=np.uint8)
@@ -90,10 +90,8 @@ class AirHockey(object):
         self.bodies = [self.puck, self.top_mallet, self.bottom_mallet]
         self.bodies = self.bodies[::-1]
         
-        self.top_ai          = ai.RuleBasedAI(self.top_mallet, self.puck, mode='top', dim=self.dim)
-        self.bottom_ai       = ai.RuleBasedAI(self.bottom_mallet, self.puck, mode='bottom', dim=self.dim)
-#        self.top_ai          = ai.MachineLearningAI(self.state, mode='top', dim=self.dim)
-#        self.bottom_ai       = ai.MachineLearningAI(self.state, mode='bottom', dim=self.dim)
+        self.top_ai          = AI(self.top_mallet, self.puck, mode='top', dim=self.dim)
+        self.bottom_ai       = AI(self.bottom_mallet, self.puck, mode='bottom', dim=self.dim)
         
         self.top_ai_force    = ControlledForce()
         self.bottom_ai_force = ControlledForce()
@@ -177,7 +175,6 @@ class AirHockey(object):
         
         np.copyto(self.frame, pygame.surfarray.array3d(self.screen))
         np.copyto(self.cropped_frame, self.frame[:, self.dim.vertical_margin:-self.dim.vertical_margin, :].transpose((1,0,2)))
-        np.copyto(self.state, cv2.resize(self.cropped_frame, (128, 128)))
             
         
     def reset(self):
@@ -192,10 +189,11 @@ class AirHockey(object):
             np.copyto(self.puck.default_position, self.dim.puck_default_position_bottom)
             
         # Diversify the data
-        if np.random.randint(2):
-            self.table_sprite = pygame.image.load(dir_path + '/sprites/table.png')
-        else:
-            self.table_sprite = pygame.image.load(dir_path + '/sprites/flipped_table.png')
+        self.table_sprite = pygame.image.load(dir_path + '/sprites/table.png')
+#        if np.random.randint(2):
+#            self.table_sprite = pygame.image.load(dir_path + '/sprites/table.png')
+#        else:
+#            self.table_sprite = pygame.image.load(dir_path + '/sprites/flipped_table.png')
             
         self.puck_sprite          = pygame.image.load(dir_path + '/sprites/puck.png')
         self.top_mallet_sprite    = pygame.image.load(dir_path + '/sprites/top_mallet.png')
@@ -263,4 +261,4 @@ class AirHockey(object):
             
         self._render()
         
-        return self.state, self.reward
+        return self.cropped_frame, self.reward
