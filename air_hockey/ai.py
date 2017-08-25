@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 import numpy as np
 import air_hockey.vector as V
 import air_hockey.physical_constants as P
@@ -65,14 +64,15 @@ class AI(object):
                 if y == 1 and py > (self.dim.center[1] - self.dim.goalpost_length): y = -1  
             elif self.mode == 'bottom':
                 if y == -1 and py < (self.dim.center[1] + self.dim.goalpost_length): y = 1
+            
         else:
-            if puck_vy < 0:
+            if puck_vy <= 0:
                 if puck_px < px: x = -1
                 if puck_px > px: x = 1
                 if puck_py < py: y = -1
                 if puck_py > py: y = 1
             else:
-                too_fast = V.magnitude(puck.get_velocity()) > 0.8*P.puck_maximum_speed 
+                too_fast = V.magnitude(puck.get_velocity()) > 0.3*P.puck_maximum_speed 
                 if too_fast:
                     def save_goal(goal, p, x):
                         diff = goal - p

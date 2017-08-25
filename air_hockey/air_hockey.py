@@ -13,7 +13,6 @@ from air_hockey.ai import AI
 from air_hockey.line import Line
 from air_hockey.score import Score
 from air_hockey.utils import flatten_list
-import air_hockey.colors as C
           
 class AirHockey(object):
     def __init__(self, dim=Dimensions(), video_file=None):
@@ -99,7 +98,6 @@ class AirHockey(object):
         self.forces = ForceRegistry()
         self.forces.add(self.top_mallet,    self.top_ai_force)
         self.forces.add(self.bottom_mallet, self.bottom_ai_force)
-#        self.forces.add(self.bottom_mallet, PlayerForce(player=0))
         
         self.score = Score(self.dim)
         
@@ -183,10 +181,10 @@ class AirHockey(object):
         for body in self.bodies:
             body.reset()
         
-        if np.random.randint(2):
-            np.copyto(self.puck.default_position, self.dim.puck_default_position_top)
-        else:
-            np.copyto(self.puck.default_position, self.dim.puck_default_position_bottom)
+#        if np.random.randint(2):
+#            np.copyto(self.puck.default_position, self.dim.puck_default_position_top)
+#        else:
+        np.copyto(self.puck.default_position, self.dim.puck_default_position_bottom)
             
         # Diversify the data
         self.table_sprite = pygame.image.load(dir_path + '/sprites/table.png')
@@ -207,27 +205,27 @@ class AirHockey(object):
         
         self._render()   
         
-    def step(self, action=None, delta_time=1, n_steps=3):
+    def step(self, action=None, delta_time=1, n_steps=5):
         
         if action is not None:
             self.bottom_ai.force[:] = action
+
+        # Make AI move
+        self.top_ai.move()
+        if action is None:
+            self.bottom_ai.move()
+            
+        # Update forces with AI moves
+        self.top_ai_force.set_force(self.top_ai.force)
+        self.bottom_ai_force.set_force(self.bottom_ai.force)
+        
+        # Clear forces from last frame
+        for body in self.bodies:
+            body.clear_accumulators()
+        self.forces.update_forces()
         
         self.reward =  0.0
         for i in range(n_steps):
-        
-            # Make AI move
-            self.top_ai.move()
-            if action is None:
-                self.bottom_ai.move()
-                
-            # Update forces with AI moves
-            self.top_ai_force.set_force(self.top_ai.force)
-            self.bottom_ai_force.set_force(self.bottom_ai.force)
-            
-            # Clear forces from last frame
-            for body in self.bodies:
-                body.clear_accumulators()
-            self.forces.update_forces()
             
             # Move bodies
             for body in self.bodies:
