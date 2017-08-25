@@ -178,13 +178,14 @@ class AirHockey(object):
     def reset(self):
         self.score.reset()
         
+        if np.random.randint(2):
+            np.copyto(self.puck.default_position, self.dim.puck_default_position_top)
+        else:
+            np.copyto(self.puck.default_position, self.dim.puck_default_position_bottom)
+            
+        
         for body in self.bodies:
             body.reset()
-        
-#        if np.random.randint(2):
-#            np.copyto(self.puck.default_position, self.dim.puck_default_position_top)
-#        else:
-        np.copyto(self.puck.default_position, self.dim.puck_default_position_bottom)
             
         # Diversify the data
         self.table_sprite = pygame.image.load(dir_path + '/sprites/table.png')
@@ -205,7 +206,7 @@ class AirHockey(object):
         
         self._render()   
         
-    def step(self, action=None, delta_time=1, n_steps=5):
+    def step(self, action=None, delta_time=1, n_steps=1):
         
         if action is not None:
             self.bottom_ai.force[:] = action
