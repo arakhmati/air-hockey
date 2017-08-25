@@ -206,9 +206,15 @@ class AirHockey(object):
         
         self._render()   
         
-    def step(self, action=None, delta_time=1, n_steps=1):
+    def step(self, action=None, delta_time=1, n_steps=2):
         
         if action is not None:
+            if not isinstance(action, np.ndarray):
+                raise Exception('Action is supposed to be a numpy array')
+            elif action.shape[0] != 2:
+                raise Exception('Action array can only have 2 values (x and y)')  
+            elif action.min() < -1 or action.max() > 1:
+                raise Exception('Values of x and y have to be in range [-1, 1]')  
             self.bottom_ai.force[:] = action
 
         # Make AI move
