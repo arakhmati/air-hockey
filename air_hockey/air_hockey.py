@@ -12,6 +12,7 @@ from air_hockey.collision import Collision
 from air_hockey.ai import AI
 from air_hockey.line import Line
 from air_hockey.score import Score
+from air_hockey.game_info import GameInfo
 from air_hockey.utils import flatten_list
           
 class AirHockey(object):
@@ -24,7 +25,6 @@ class AirHockey(object):
         self.screen = pygame.display.set_mode((self.dim.width, self.dim.height))
         pygame.display.set_caption('Air Hockey')
         
-        
         self.writer = None
         if video_file is not None:
             if os.path.isfile(video_file): os.remove(video_file)
@@ -34,9 +34,7 @@ class AirHockey(object):
         
         self.frame = np.zeros((self.dim.width, self.dim.height, 3), dtype=np.uint8)
         self.cropped_frame = np.zeros((self.dim.height-2*self.dim.vertical_margin, self.dim.width, 3), dtype=np.uint8)
-        
-        self.state = np.zeros((128, 128, 3), dtype=np.uint8)
-        self.reward = 0
+
            
         # Add Walls 
         # Arcs and Lines should be anti-clockwise
@@ -100,6 +98,7 @@ class AirHockey(object):
         self.forces.add(self.bottom_mallet, self.bottom_ai_force)
         
         self.score = Score(self.dim)
+        self.info = GameInfo(self.cropped_frame)
         
         self.reset()
     
@@ -183,16 +182,15 @@ class AirHockey(object):
         else:
             np.copyto(self.puck.default_position, self.dim.puck_default_position_bottom)
             
-        
         for body in self.bodies:
             body.reset()
             
         # Diversify the data
         self.table_sprite = pygame.image.load(dir_path + '/sprites/table.png')
-#        if np.random.randint(2):
-#            self.table_sprite = pygame.image.load(dir_path + '/sprites/table.png')
-#        else:
-#            self.table_sprite = pygame.image.load(dir_path + '/sprites/flipped_table.png')
+        if np.random.randint(2):
+            self.table_sprite = pygame.image.load(dir_path + '/sprites/table.png')
+        else:
+            self.table_sprite = pygame.image.load(dir_path + '/sprites/flipped_table.png')
             
         self.puck_sprite          = pygame.image.load(dir_path + '/sprites/puck.png')
         self.top_mallet_sprite    = pygame.image.load(dir_path + '/sprites/top_mallet.png')
@@ -231,7 +229,6 @@ class AirHockey(object):
             body.clear_accumulators()
         self.forces.update_forces()
         
-        self.reward =  0.0
         for i in range(n_steps):
             
             # Move bodies
@@ -240,30 +237,21 @@ class AirHockey(object):
             
             # Check collisions between all possible pairs of bodies
             Collision.circle_circle([self.puck, self.top_mallet])
-            if Collision.circle_circle([self.puck, self.bottom_mallet]):
-                self.reward = 1.0
-            else:
-                if self.puck.position[1] > self.dim.center[1]:
-                    self.reward = -10.0
-                
             Collision.circle_circle([self.top_mallet, self.bottom_mallet])
+            self.info.puck_was_hit = Collision.circle_circle([self.puck, self.bottom_mallet])
             
             # Make sure all bodies are within their borders
             for body in self.bodies:
                 for border in body.borders:
                     Collision.circle_line(body, border)
                   
-            scored = self.score.update(self.puck)
-            if scored is not '':
+            self.info.scored = self.score.update(self.puck)
+            if self.info.scored is not None:
                 for body in self.bodies:
                     body.reset()
                 print(self.score)
-                if scored is 'bottom':
-                    self.reward =  1000.0
-                else:
-                    self.reward = -10000.0
                 break
             
         self._render()
         
-        return self.cropped_frame, self.reward
+        return self.info

@@ -9,7 +9,7 @@ class Score(object):
     def update(self, puck):
         _, y = puck.position
         
-        scored = ''
+        scored = None
         if y < self.dim.top_goal:
             self._score['bottom'] += 1
             np.copyto(puck.default_position, self.dim.puck_default_position_bottom)
