@@ -200,11 +200,10 @@ class AirHockey(object):
         self.puck_sprites_bottom = [pygame.image.load(dir_path + '/sprites/puck_bottom_{}.png'.format(i)) for i in range(7)]
         
         self.top_arm_sprite = pygame.transform.flip(pygame.image.load(dir_path + '/sprites/arm_300.png'), False, True)
-        self.bottom_arm_sprite = pygame.image.load(dir_path + '/sprites/arm_300.png')
         
         self._render()   
         
-    def step(self, action=None, delta_time=1, n_steps=2):
+    def step(self, action=None, delta_time=1, n_steps=4):
         
         if action is not None:
             if not isinstance(action, np.ndarray):
