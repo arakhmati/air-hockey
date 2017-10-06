@@ -6,6 +6,12 @@ class Score(object):
         self._score = {'top': 0, 'bottom': 0}
         self.dim = dim
         
+    def get_top(self):
+        return self._score['top']
+        
+    def get_bottom(self):
+        return self._score['bottom']
+        
     def update(self, puck):
         _, y = puck.position
         

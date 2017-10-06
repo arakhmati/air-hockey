@@ -6,5 +6,4 @@ if __name__ == "__main__":
     while True:
         if any([event.type == pygame.QUIT for event in pygame.event.get()]): break
         air_hockey.step()
-        
     pygame.quit ()

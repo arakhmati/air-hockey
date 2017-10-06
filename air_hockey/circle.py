@@ -43,11 +43,11 @@ class Circle(ABC):
         self.accumulated_forces[:] = 0      
         
     # updates position and velocity
-    def integrate(self, delta_time):
-        velocity = self._velocity + self.accumulated_forces * self._inverse_mass * delta_time
+    def integrate(self):
+        velocity = self._velocity + self.accumulated_forces * self._inverse_mass
         velocity *= self.friction
         self.set_velocity(velocity)      
-        self.position += self._velocity * delta_time
+        self.position += self._velocity
         
     def reset(self):
         self.clear_accumulators()

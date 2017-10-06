@@ -1,5 +1,6 @@
 import numpy as np
 from PIL import Image
+
 def generate_puck_sprites():
 
     image = Image.open('sprites/puck.png')

@@ -1,5 +1,4 @@
 import pygame
-import itertools
 import numpy as np
 import cv2
 import os 
@@ -7,7 +6,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 from air_hockey.dimensions import Dimensions
 from air_hockey.circle import Puck, Mallet
-from air_hockey.force import ForceRegistry, RandomForce, PlayerForce, ControlledForce
+from air_hockey.force import ForceRegistry, ControlledForce
 from air_hockey.collision import Collision
 from air_hockey.ai import AI
 from air_hockey.line import Line
@@ -100,6 +99,8 @@ class AirHockey(object):
         self.score = Score(self.dim)
         self.info = GameInfo(self.cropped_frame)
         
+        self.font = pygame.font.SysFont("monospace", 30)
+                
         self.reset()
     
         
@@ -166,8 +167,11 @@ class AirHockey(object):
             for line in self.borders:
                 pygame.draw.line(self.screen, (0, 255, 255), line.p2, line.p1, 6)  
      
-    def _render(self, debug=0):                
+    def _render(self, debug=False):                
         self._draw(self.puck.position, self.top_mallet.position, self.bottom_mallet.position, debug)
+        self.screen.blit(self.font.render('%4d' % self.score.get_top(),    1, (200, 0, 0)), (0, 30))
+        self.screen.blit(self.font.render('%4d' % self.score.get_bottom(), 1, (0, 200, 0)), (0, self.dim.rink_bottom+30))
+        
         pygame.display.update()
         
         np.copyto(self.frame, pygame.surfarray.array3d(self.screen))
@@ -199,11 +203,11 @@ class AirHockey(object):
         self.puck_sprites_top    = [pygame.image.load(dir_path + '/sprites/puck_top_{}.png'.format(i))    for i in range(7)]
         self.puck_sprites_bottom = [pygame.image.load(dir_path + '/sprites/puck_bottom_{}.png'.format(i)) for i in range(7)]
         
-        self.top_arm_sprite = pygame.transform.flip(pygame.image.load(dir_path + '/sprites/arm_300.png'), False, True)
+        self.top_arm_sprite = pygame.transform.flip(pygame.image.load(dir_path + '/sprites/arm.png'), False, True)
         
         self._render()   
         
-    def step(self, action=None, delta_time=1, n_steps=4):
+    def step(self, action=None, n_steps=2, debug=False):
         
         if action is not None:
             if not isinstance(action, np.ndarray):
@@ -232,7 +236,7 @@ class AirHockey(object):
             
             # Move bodies
             for body in self.bodies:
-                body.integrate(delta_time)
+                body.integrate()
             
             # Check collisions between all possible pairs of bodies
             Collision.circle_circle([self.puck, self.top_mallet])
@@ -248,9 +252,8 @@ class AirHockey(object):
             if self.info.scored is not None:
                 for body in self.bodies:
                     body.reset()
-                print(self.score)
                 break
             
-        self._render()
+        self._render(debug)
         
         return self.info
