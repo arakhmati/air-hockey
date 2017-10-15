@@ -3,7 +3,7 @@ import numpy as np
 class Dimensions(object):
 
     def __init__(self, width=450, height=800, vertical_margin=85, horizontal_margin=20,
-                 goalpost_length=160, arc_radius=130, mallet_radius=27, bezier_ratio=0.1):
+                 goalpost_length=160, arc_radius=130, mallet_radius=27, bezier_ratio=0.03):
         ############ Parameters ############
         self.width = width
         self.height = height
@@ -73,14 +73,4 @@ class Dimensions(object):
         
         self.top_goal    = self.rink_top    - self.mallet_radius
         self.bottom_goal = self.rink_bottom + self.mallet_radius
-
-
-
-
-
-
-
-
-
-        
         

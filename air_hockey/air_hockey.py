@@ -12,32 +12,14 @@ from air_hockey.ai import AI
 from air_hockey.line import Line
 from air_hockey.score import Score
 from air_hockey.game_info import GameInfo
-from air_hockey.utils import flatten_list
           
 class AirHockey(object):
     def __init__(self, dim=Dimensions(), video_file=None):
         
-        pygame.init()
-        
         self.dim = dim
-        
-        self.screen = pygame.display.set_mode((self.dim.width, self.dim.height))
-        pygame.display.set_caption('Air Hockey')
-        
-        self.writer = None
-        if video_file is not None:
-            if os.path.isfile(video_file): os.remove(video_file)
-            self.writer = cv2.VideoWriter(video_file, cv2.VideoWriter_fourcc(*'PIM1'), 30, 
-                                     (self.dim.width, self.dim.height-self.dim.vertical_margin*2))
-        
-        
-        self.frame = np.zeros((self.dim.width, self.dim.height, 3), dtype=np.uint8)
-        self.cropped_frame = np.zeros((self.dim.height-2*self.dim.vertical_margin, self.dim.width, 3), dtype=np.uint8)
-
            
         # Add Walls 
-        # Arcs and Lines should be anti-clockwise
-        # self.dim.center can be passed to Line() and Line.generate_bezier_curve() to ensure 'anti-clockwiseness'
+        # Arcs and Lines have to be passed in an anti-clockwise order with respect to the self.dim.center
         top_wall          = Line(self.dim.arc_top_left_start, self.dim.arc_top_right_end)
         bottom_wall       = Line(self.dim.arc_bottom_left_end, self.dim.arc_bottom_right_start)
         left_wall         = Line(self.dim.arc_top_left_end, self.dim.arc_bottom_left_start)
@@ -51,43 +33,26 @@ class AirHockey(object):
         center_line       = Line(self.dim.center_left, self.dim.center_right)
         
         # Add Corners
-        top_left_corner     = Line.generate_bezier_curve(self.dim.arc_top_left,     self.dim)
-        top_right_corner    = Line.generate_bezier_curve(self.dim.arc_top_right,    self.dim)
-        bottom_left_corner  = Line.generate_bezier_curve(self.dim.arc_bottom_left,  self.dim)
-        bottom_right_corner = Line.generate_bezier_curve(self.dim.arc_bottom_right, self.dim)
+        top_left_corner     = Line.generate_bezier_curve(self.dim.arc_top_left, self.dim.bezier_ratio)
+        top_right_corner    = Line.generate_bezier_curve(self.dim.arc_top_right, self.dim.bezier_ratio)
+        bottom_left_corner  = Line.generate_bezier_curve(self.dim.arc_bottom_left, self.dim.bezier_ratio)
+        bottom_right_corner = Line.generate_bezier_curve(self.dim.arc_bottom_right, self.dim.bezier_ratio)
         
-        self.borders = flatten_list([
-                        top_left_wall, top_right_wall,
-                        bottom_left_wall, bottom_right_wall,
-                        left_wall, right_wall,
-                        top_left_corner, top_right_corner,
-                        bottom_left_corner, bottom_right_corner])
+        self.borders = [top_left_wall, top_right_wall, bottom_left_wall, bottom_right_wall, left_wall, right_wall] + \
+                        top_left_corner + top_right_corner + bottom_left_corner + bottom_right_corner
         
-        self.puck = Puck(self.dim.center, self.dim.puck_radius,
-                          flatten_list([
-                          top_left_wall, top_right_wall,
-                          bottom_left_wall, bottom_right_wall,
-                          left_wall, right_wall,
-                          top_left_corner, top_right_corner,
-                          bottom_left_corner, bottom_right_corner]))
+        self.puck = Puck(self.dim.center, self.dim.puck_radius, self.borders)
         
         self.top_mallet = Mallet(self.dim.top_mallet_position, self.dim.mallet_radius,
-                          flatten_list([
-                          top_wall, center_line,
-                          left_wall, right_wall,
-                          top_left_corner, top_right_corner]))
+                          [top_wall, center_line, left_wall, right_wall] + top_left_corner + top_right_corner)
         
         self.bottom_mallet = Mallet(self.dim.bottom_mallet_position, self.dim.mallet_radius,
-                          flatten_list([
-                          center_line, bottom_wall,
-                          left_wall, right_wall,
-                          bottom_left_corner, bottom_right_corner]))
+                          [center_line, bottom_wall, left_wall, right_wall] + bottom_left_corner + bottom_right_corner)
     
         self.bodies = [self.puck, self.top_mallet, self.bottom_mallet]
-        self.bodies = self.bodies[::-1]
         
-        self.top_ai          = AI(self.top_mallet, self.puck, mode='top', dim=self.dim)
-        self.bottom_ai       = AI(self.bottom_mallet, self.puck, mode='bottom', dim=self.dim)
+        self.top_ai    = AI(self.top_mallet,    self.puck, mode='top',    dim=self.dim)
+        self.bottom_ai = AI(self.bottom_mallet, self.puck, mode='bottom', dim=self.dim)
         
         self.top_ai_force    = ControlledForce()
         self.bottom_ai_force = ControlledForce()
@@ -97,9 +62,25 @@ class AirHockey(object):
         self.forces.add(self.bottom_mallet, self.bottom_ai_force)
         
         self.score = Score(self.dim)
-        self.info = GameInfo(self.cropped_frame)
         
+        
+        # Initialize pygame variables
+        pygame.init()
+        self.screen = pygame.display.set_mode((self.dim.width, self.dim.height))
         self.font = pygame.font.SysFont("monospace", 30)
+        pygame.display.set_caption('Air Hockey')
+        
+        # Initialize a video writer 
+        self.writer = None
+        if video_file is not None:
+            if os.path.isfile(video_file): os.remove(video_file)
+            self.writer = cv2.VideoWriter(video_file, cv2.VideoWriter_fourcc(*'PIM1'), 30, 
+                          (self.dim.width, self.dim.height-self.dim.vertical_margin*2))
+        
+        # Allocate memory for frame
+        self.frame = np.zeros((self.dim.width, self.dim.height, 3), dtype=np.uint8)
+        self.cropped_frame = np.zeros((self.dim.height-2*self.dim.vertical_margin, self.dim.width, 3), dtype=np.uint8)
+        self.info = GameInfo(self.cropped_frame)
                 
         self.reset()
     
@@ -207,7 +188,7 @@ class AirHockey(object):
         
         self._render()   
         
-    def step(self, action=None, n_steps=2, debug=False):
+    def step(self, action=None, dt=2, debug=False):
         
         if action is not None:
             if not isinstance(action, np.ndarray):
@@ -218,41 +199,36 @@ class AirHockey(object):
                 raise Exception('Values of x and y have to be in range [-1, 1]')  
             self.bottom_ai.force[:] = action
 
-        # Make AI move
-        self.top_ai.move()
+        # Compute AI moves and update forces
+        self.top_ai_force.set_force(self.top_ai.move())
         if action is None:
-            self.bottom_ai.move()
-            
-        # Update forces with AI moves
-        self.top_ai_force.set_force(self.top_ai.force)
-        self.bottom_ai_force.set_force(self.bottom_ai.force)
+            action = self.bottom_ai.move()
+        self.bottom_ai_force.set_force(action)
+        # Update game info
+        self.info.set_action(action)
         
         # Clear forces from last frame
         for body in self.bodies:
             body.clear_accumulators()
         self.forces.update_forces()
+            
+        # Move bodies
+        for body in self.bodies:
+            body.integrate(dt)
         
-        for i in range(n_steps):
-            
-            # Move bodies
-            for body in self.bodies:
-                body.integrate()
-            
-            # Check collisions between all possible pairs of bodies
-            Collision.circle_circle([self.puck, self.top_mallet])
-            Collision.circle_circle([self.top_mallet, self.bottom_mallet])
-            self.info.puck_was_hit = Collision.circle_circle([self.puck, self.bottom_mallet])
-            
-            # Make sure all bodies are within their borders
-            for body in self.bodies:
-                for border in body.borders:
-                    Collision.circle_line(body, border)
-                  
-            self.info.scored = self.score.update(self.puck)
-            if self.info.scored is not None:
-                for body in self.bodies:
-                    body.reset()
-                break
+        # Check collisions between all possible pairs of bodies
+        Collision.circle_circle([self.puck, self.top_mallet])
+        Collision.circle_circle([self.top_mallet, self.bottom_mallet])
+        self.info.puck_was_hit = Collision.circle_circle([self.puck, self.bottom_mallet])
+        
+        # Make sure all bodies are within their borders
+        for body in self.bodies:
+            for border in body.borders:
+                Collision.circle_line(body, border)
+              
+        self.info.scored = self.score.update(self.puck)
+        if self.info.scored is not None:
+            for body in self.bodies: body.reset()
             
         self._render(debug)
         

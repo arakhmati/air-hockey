@@ -2,7 +2,19 @@
 
 namespace air_hockey {
 
-	Circle::Circle() {}
+	Circle::Circle() {
+    	this->position = Vector2D();
+    	this->radius = 0.0f;
+    	this->borders = Vector2D();
+		this->inverse_mass = 1.0f;
+    	this->maximum_speed = 0.0f;
+    	this->friction = 0.0f;
+    	this->body_restitution = 0.0f;
+    	this->wall_restitution = 0.0f;
+    	this->velocity = Vector2D(0.0f, 0.0f);
+    	this->accumulated_forces = Vector2D(0.0f, 0.0f);
+		this->default_position = this->position;
+	}
 
     Circle::Circle(Vector2D position,
                    float radius,
@@ -69,7 +81,6 @@ namespace air_hockey {
 		this->position = this->default_position;
 		this->velocity.set_to_zero();
 	}
-
 
     ostream& operator<<(ostream &os, Circle const &o) {
         return os <<

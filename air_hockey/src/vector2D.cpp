@@ -14,6 +14,16 @@ namespace air_hockey {
 
     Vector2D::~Vector2D() { }
 
+
+
+	float Vector2D::get_x() {
+		return this->x;
+	}
+
+	float Vector2D::get_y() {
+		return this->y;
+	}
+
     void Vector2D::operator=(const Vector2D& b) {
     	this->x = b.x;
     	this->y = b.y;
@@ -51,11 +61,22 @@ namespace air_hockey {
     }
 
     void Vector2D::normalize() {
-    	float mag = magnitude();
+    	float mag = this->magnitude();
     	if (mag != 0.0f) {
     		this->x /= mag;
     		this->y /= mag;
     	}
+    }
+
+    Vector2D Vector2D::normalized() {
+    	float mag = this->magnitude();
+    	float x = this->x;
+    	float y = this->y;
+    	if (mag != 0.0f) {
+    		x /= mag;
+    		y /= mag;
+    	}
+    	return Vector2D(x, y);
     }
 
     void Vector2D::set_to_zero() {

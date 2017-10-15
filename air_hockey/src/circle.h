@@ -34,8 +34,6 @@ namespace air_hockey {
 			void integrate();
 			void reset();
 
-			void print();
-
 		private:
 			Vector2D position;
 			float radius;

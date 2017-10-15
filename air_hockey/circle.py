@@ -1,7 +1,7 @@
 import numpy as np
 from abc import ABC
 import air_hockey.vector as V
-import air_hockey.physical_constants as P
+import air_hockey.phy_const as P
     
 class Circle(ABC):
     def __init__(self, position, radius, borders, mass, maximum_speed, friction, body_restitution, wall_restitution):
@@ -43,11 +43,11 @@ class Circle(ABC):
         self.accumulated_forces[:] = 0      
         
     # updates position and velocity
-    def integrate(self):
-        velocity = self._velocity + self.accumulated_forces * self._inverse_mass
+    def integrate(self, dt):
+        velocity = self._velocity + self.accumulated_forces * self._inverse_mass * dt
         velocity *= self.friction
         self.set_velocity(velocity)      
-        self.position += self._velocity
+        self.position += self._velocity * dt
         
     def reset(self):
         self.clear_accumulators()

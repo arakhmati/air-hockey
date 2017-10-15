@@ -16,6 +16,9 @@ namespace air_hockey {
 			Vector2D(float x, float y);
 			virtual ~Vector2D();
 
+			float get_x();
+			float get_y();
+
 			void operator=(const Vector2D& b);
 			Vector2D operator+(const Vector2D& b);
 			Vector2D operator-(const Vector2D& b);
@@ -26,13 +29,12 @@ namespace air_hockey {
 
 			float magnitude();
 			void normalize();
+			Vector2D normalized();
 			void set_to_zero();
 
 		private:
 			float x;
 			float y;
-
-
     };
 }
 #endif

@@ -100,5 +100,4 @@ class Collision(object):
             velocity = body.get_velocity() - line.normal * body.get_velocity().dot(line.normal) * 2 * body.wall_restitution
             body.set_velocity(velocity)
             
-        
         return closest_point
