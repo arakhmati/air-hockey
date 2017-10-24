@@ -1,5 +1,6 @@
 # Air Hockey Game Simulator
 This simulator was created in order to train a machine learning model that can play air hockey. It can be used to generate data for supervised learning models and it can also be used as an environment for training reinforcement learning agents.
+OpenAI Gym Environment Wrapper for this simulator can be found at [gym-air-hockey](https://github.com/arakhmat/gym-air-hockey)
 ### Prerequisites
 I recommend using Anaconda3 Python distribution. You can download it from: [https://www.anaconda.com/download/]
 ### Installing
