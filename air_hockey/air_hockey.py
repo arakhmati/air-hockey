@@ -2,7 +2,6 @@ import pygame
 import numpy as np
 import cv2
 import os 
-dir_path = os.path.dirname(os.path.realpath(__file__))
 
 from air_hockey.dimensions import Dimensions
 from air_hockey.circle import Puck, Mallet
@@ -12,6 +11,7 @@ from air_hockey.ai import AI
 from air_hockey.line import Line
 from air_hockey.score import Score
 from air_hockey.game_info import GameInfo
+from air_hockey.sprite_utils import load_sprites, blit_puck
           
 class AirHockey(object):
     def __init__(self, dim=Dimensions(), video_file=None):
@@ -63,7 +63,6 @@ class AirHockey(object):
         
         self.score = Score(self.dim)
         
-        
         # Initialize pygame variables
         pygame.init()
         self.screen = pygame.display.set_mode((self.dim.width, self.dim.height))
@@ -85,61 +84,22 @@ class AirHockey(object):
         self.reset()
     
         
-    
     def _draw(self, puck, top_mallet, bottom_mallet, debug=False):        
-        self.screen.blit(self.table_sprite, [0,0])
-        self.screen.blit(self.top_mallet_sprite,    top_mallet - self.dim.mallet_radius)
-        self.screen.blit(self.bottom_mallet_sprite, bottom_mallet - self.dim.mallet_radius)
+        self.screen.blit(self.sprites['table'], [0,0])
+        self.screen.blit(self.sprites['top_mallet'],    top_mallet - self.dim.mallet_radius)
+        self.screen.blit(self.sprites['bottom_mallet'], bottom_mallet - self.dim.mallet_radius)
         
-        # Draw the puck based on its position near the goal
-        if self.dim.rink_top + self.dim.puck_radius <= puck[1] <= self.dim.rink_bottom - self.dim.puck_radius:
-            self.screen.blit(self.puck_sprite, puck - self.dim.puck_radius)
-        elif self.dim.rink_top - self.dim.puck_radius <= puck[1] <= self.dim.center[1]:
-            if   self.dim.rink_top + self.dim.puck_radius * 0.7 <= puck[1]:
-                self.screen.blit(self.puck_sprites_top[6], puck - self.dim.puck_radius)
-            elif self.dim.rink_top + self.dim.puck_radius * 0.4 <= puck[1]:
-                self.screen.blit(self.puck_sprites_top[5], puck - self.dim.puck_radius)
-            elif self.dim.rink_top + self.dim.puck_radius * 0.1 <= puck[1]:
-                self.screen.blit(self.puck_sprites_top[4], puck - self.dim.puck_radius)
-            elif self.dim.rink_top - self.dim.puck_radius * 0.1 <= puck[1]:
-                self.screen.blit(self.puck_sprites_top[3], puck - self.dim.puck_radius)
-            elif self.dim.rink_top - self.dim.puck_radius * 0.4 <= puck[1]:
-                self.screen.blit(self.puck_sprites_top[2], puck - self.dim.puck_radius)
-            elif self.dim.rink_top - self.dim.puck_radius * 0.7 <= puck[1]:
-                self.screen.blit(self.puck_sprites_top[1], puck - self.dim.puck_radius)
-            elif self.dim.rink_top - self.dim.puck_radius       <= puck[1]:
-                self.screen.blit(self.puck_sprites_top[0], puck - self.dim.puck_radius)
-        elif self.dim.center[1] <= puck[1] <= self.dim.rink_bottom + self.dim.puck_radius:
-            if   puck[1] <= self.dim.rink_bottom - self.dim.puck_radius * 0.7:
-                self.screen.blit(self.puck_sprites_bottom[6], puck - self.dim.puck_radius)
-            elif puck[1] <= self.dim.rink_bottom - self.dim.puck_radius * 0.4:
-                self.screen.blit(self.puck_sprites_bottom[5], puck - self.dim.puck_radius)
-            elif puck[1] <= self.dim.rink_bottom - self.dim.puck_radius * 0.1:
-                self.screen.blit(self.puck_sprites_bottom[4], puck - self.dim.puck_radius)
-            elif puck[1] <= self.dim.rink_bottom + self.dim.puck_radius * 0.1:
-                self.screen.blit(self.puck_sprites_bottom[3], puck - self.dim.puck_radius)
-            elif puck[1] <= self.dim.rink_bottom + self.dim.puck_radius * 0.4:
-                self.screen.blit(self.puck_sprites_bottom[2], puck - self.dim.puck_radius)
-            elif puck[1] <= self.dim.rink_bottom + self.dim.puck_radius * 0.7:
-                self.screen.blit(self.puck_sprites_bottom[1], puck - self.dim.puck_radius)
-            elif puck[1] <= self.dim.rink_bottom + self.dim.puck_radius:
-                self.screen.blit(self.puck_sprites_bottom[0], puck - self.dim.puck_radius)
+        blit_puck(self, puck)
                 
-        # Draw the arm that controls the top mallet      
-        self.screen.blit(self.top_arm_sprite, 
-                    top_mallet - np.array((self.dim.mallet_radius, self.top_arm_sprite.get_size()[1] - self.dim.mallet_radius), 
+        # Draw arm that controls top mallet      
+        self.screen.blit(self.sprites['arm'], 
+                    top_mallet - np.array((self.dim.mallet_radius, self.sprites['arm'].get_size()[1] - self.dim.mallet_radius), 
                   dtype=np.float32))
 
-        # Draw the robot that controls  the bottom mallet
-        pygame.draw.line(self.screen, (0, 0, 16), 
-                         [self.dim.rink_left, bottom_mallet[1]], 
-                         [self.dim.rink_right, bottom_mallet[1]], 24) 
-        pygame.draw.line(self.screen, (0, 0, 16), 
-                         [(self.dim.table_left+self.dim.rink_left)/2, self.dim.table_bottom], 
-                         [(self.dim.table_left+self.dim.rink_left)/2, self.dim.center[1]], 24) 
-        pygame.draw.line(self.screen, (0, 0, 16),
-                         [(self.dim.table_right+self.dim.rink_right)/2, self.dim.table_bottom], 
-                         [(self.dim.table_right+self.dim.rink_right)/2, self.dim.center[1]], 24) 
+        # Draw robot that controls bottom mallet
+        pygame.draw.line(self.screen, (184,184,184), 
+                         [self.dim.table_left, bottom_mallet[1]], 
+                         [self.dim.table_right, bottom_mallet[1]], 6) 
         
         if self.writer:
             self.writer.write(self.cropped_frame[:,:,::-1])
@@ -158,37 +118,18 @@ class AirHockey(object):
         np.copyto(self.frame, pygame.surfarray.array3d(self.screen))
         np.copyto(self.cropped_frame, self.frame[:, self.dim.vertical_margin:-self.dim.vertical_margin, :].transpose((1,0,2)))
             
-        
-    def reset(self):
-        self.score.reset()
-        
-        if np.random.randint(2):
-            np.copyto(self.puck.default_position, self.dim.puck_default_position_top)
-        else:
-            np.copyto(self.puck.default_position, self.dim.puck_default_position_bottom)
+    def reset(self, reset_score=False):            
+        if reset_score:
+            self.score.reset()
             
         for body in self.bodies:
             body.reset()
             
-        # Diversify the data
-        self.table_sprite = pygame.image.load(dir_path + '/sprites/table.png')
-        if np.random.randint(2):
-            self.table_sprite = pygame.image.load(dir_path + '/sprites/table.png')
-        else:
-            self.table_sprite = pygame.image.load(dir_path + '/sprites/flipped_table.png')
-            
-        self.puck_sprite          = pygame.image.load(dir_path + '/sprites/puck.png')
-        self.top_mallet_sprite    = pygame.image.load(dir_path + '/sprites/top_mallet.png')
-        self.bottom_mallet_sprite = pygame.image.load(dir_path + '/sprites/bottom_mallet.png')
-        
-        self.puck_sprites_top    = [pygame.image.load(dir_path + '/sprites/puck_top_{}.png'.format(i))    for i in range(7)]
-        self.puck_sprites_bottom = [pygame.image.load(dir_path + '/sprites/puck_bottom_{}.png'.format(i)) for i in range(7)]
-        
-        self.top_arm_sprite = pygame.transform.flip(pygame.image.load(dir_path + '/sprites/arm.png'), False, True)
+        self.sprites = load_sprites()
         
         self._render()   
         
-    def step(self, action=None, dt=2, debug=False):
+    def step(self, action=None, dt=1, debug=False):
         
         if action is not None:
             if not isinstance(action, np.ndarray):
@@ -197,7 +138,7 @@ class AirHockey(object):
                 raise Exception('Action array can only have 2 values (x and y)')  
             elif action.min() < -1 or action.max() > 1:
                 raise Exception('Values of x and y have to be in range [-1, 1]')  
-            self.bottom_ai.force[:] = action
+            self.bottom_ai._force[:] = action
 
         # Compute AI moves and update forces
         self.top_ai_force.set_force(self.top_ai.move())

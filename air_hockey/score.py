@@ -13,7 +13,7 @@ class Score(object):
         return self._score['bottom']
         
     def update(self, puck):
-        _, y = puck.position
+        x, y = puck.position
         
         scored = None
         if y < self.dim.top_goal:
@@ -24,6 +24,13 @@ class Score(object):
             self._score['top'] += 1
             np.copyto(puck.default_position, self.dim.puck_default_position_top)
             scored = 'top'
+            
+        if not (self.dim.rink_left < x < self.dim.rink_right):
+            if np.random.randint(2):
+                np.copyto(puck.default_position, self.dim.puck_default_position_top)
+            else:
+                np.copyto(puck.default_position, self.dim.puck_default_position_bottom)
+            scored = 'out_of_bounds'
         return scored
             
     def __repr__(self):

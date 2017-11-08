@@ -64,7 +64,7 @@ class AI(object):
                 if y == 1 and py > (self.dim.center[1] - self.dim.goalpost_length): y = -1  
             elif self.mode == 'bottom':
                 if y == -1 and py < (self.dim.center[1] + self.dim.goalpost_length): y = 1
-            print('{:15} {:4d} {:4d}'.format('not reachable', x, y))
+#            print('{:15} {:4d} {:4d}'.format('not reachable', x, y))
             
         else:
             if puck_vy <= 0:
@@ -72,7 +72,7 @@ class AI(object):
                 if puck_px > px: x = 1
                 if puck_py < py: y = -1
                 if puck_py > py: y = 1
-                print('{:15} {:4d} {:4d}'.format('stationary', x, y))
+#                print('{:15} {:4d} {:4d}'.format('stationary', x, y))
             else:
                 too_fast = V.magnitude(puck.get_velocity()) > 0.3*P.puck_maximum_speed 
                 if too_fast:
@@ -83,13 +83,13 @@ class AI(object):
                         else:             return -1
                     x = save_goal(goal_px, px)
                     y = save_goal(goal_py, py)
-                    print('{:15} {:4d} {:4d}'.format('too fast', x, y))
+#                    print('{:15} {:4d} {:4d}'.format('too fast', x, y))
                 else:
                     if puck_px < px: x = -1
                     if puck_px > px: x = 1
                     if puck_py < py: y = -1
                     if puck_py > py: y = 1
-                    print('{:15} {:4d} {:4d}'.format('slow', x, y))
+#                    print('{:15} {:4d} {:4d}'.format('slow', x, y))
                         
         self._force[:] = x, y
         return self._force
