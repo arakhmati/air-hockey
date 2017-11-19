@@ -131,7 +131,7 @@ class AirHockey(object):
         
         return self.info
         
-    def step(self, action=None, dt=1, debug=False):
+    def step(self, action=None, adversarial_action=None, dt=1, debug=False):
         
         if action is not None:
             if not isinstance(action, np.ndarray):
@@ -143,9 +143,10 @@ class AirHockey(object):
             self.bottom_ai._force[:] = action
 
         # Compute AI moves
-        adversarial_action = self.top_ai.move()
         if action is None:
             action = self.bottom_ai.move()
+        if adversarial_action is None:
+            adversarial_action = self.top_ai.move()
         
         # Update forces
         self.top_ai_force.set_force(adversarial_action)
