@@ -9,7 +9,7 @@ Clone the repository and install it as a python module:
 ```
 git clone https://github.com/arakhmat/air-hockey
 cd air-hockey
-pip install .
+pip install -e .
 ```
 While in the same directory, test the installation by running:
 ```
