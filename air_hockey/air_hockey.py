@@ -129,6 +129,8 @@ class AirHockey(object):
         
         self._render()   
         
+        return self.info
+        
     def step(self, action=None, dt=1, debug=False):
         
         if action is not None:
@@ -140,13 +142,18 @@ class AirHockey(object):
                 raise Exception('Values of x and y have to be in range [-1, 1]')  
             self.bottom_ai._force[:] = action
 
-        # Compute AI moves and update forces
-        self.top_ai_force.set_force(self.top_ai.move())
+        # Compute AI moves
+        adversarial_action = self.top_ai.move()
         if action is None:
             action = self.bottom_ai.move()
+        
+        # Update forces
+        self.top_ai_force.set_force(adversarial_action)
         self.bottom_ai_force.set_force(action)
+        
         # Update game info
         self.info.set_action(action)
+        self.info.set_adversarial_action(adversarial_action)
         
         # Clear forces from last frame
         for body in self.bodies:
