@@ -35,16 +35,15 @@ class AI(object):
         puck_px, puck_py = self.puck.position
         puck_vx, puck_vy = self.puck.get_velocity()
             
-            
         if self.mode is 'top':
             intersects = self.intersects((puck_px, puck_py), (puck_vx, puck_vy), [self.dim.post_top_left, self.dim.post_top_right])
-            if intersects != None:
+            if intersects is not None:
                 goal_px, goal_py = intersects[0]
             else:
                 goal_px, goal_py = (self.dim.center[0], self.dim.rink_top)
         elif self.mode == 'bottom':
             intersects = self.intersects((puck_px, puck_py), (puck_vx, puck_vy), [self.dim.post_bottom_left, self.dim.post_bottom_right])
-            if intersects != None:
+            if intersects is not None:
                 goal_px, goal_py = intersects[0]
             else:
                 goal_px, goal_py = (self.dim.center[0], self.dim.rink_bottom)
