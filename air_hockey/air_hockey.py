@@ -91,10 +91,13 @@ class AirHockey(object):
         
         blit_puck(self, puck)
                 
-        # Draw arm that controls top mallet      
-        self.screen.blit(self.sprites['arm'], 
-                    top_mallet - np.array((self.dim.mallet_radius, self.sprites['arm'].get_size()[1] - self.dim.mallet_radius), 
-                  dtype=np.float32))
+        # Draw arm that controls top mallet
+        y_offset = self.sprites['arm'].get_size()[1] - self.dim.mallet_radius
+        if self.dominant_arm == 'right':
+            x_offset = self.dim.mallet_radius
+        else:
+            x_offset = self.sprites['arm'].get_size()[0] - self.dim.mallet_radius
+        self.screen.blit(self.sprites['arm'], top_mallet - np.array((x_offset, y_offset), dtype=np.float32))
 
         # Draw robot that controls bottom mallet
         pygame.draw.line(self.screen, (184,184,184), 
@@ -125,7 +128,7 @@ class AirHockey(object):
         for body in self.bodies:
             body.reset()
             
-        self.sprites = load_sprites()
+        self.sprites, self.dominant_arm = load_sprites()
         
         self._render()   
         
@@ -139,8 +142,15 @@ class AirHockey(object):
             elif action.shape[0] != 2:
                 raise Exception('Action array can only have 2 values (x and y)')  
             elif action.min() < -1 or action.max() > 1:
-                raise Exception('Values of x and y have to be in range [-1, 1]')  
-            self.bottom_ai._force[:] = action
+                raise Exception('Values of x and y have to be in range [-1, 1]')
+
+        if adversarial_action is not None:
+            if not isinstance(adversarial_action, np.ndarray):
+                raise Exception('Adversarial action is supposed to be a numpy array')
+            elif adversarial_action.shape[0] != 2:
+                raise Exception('Adversarial action array can only have 2 values (x and y)')  
+            elif adversarial_action.min() < -1 or adversarial_action.max() > 1:
+                raise Exception('Adversarial values of x and y have to be in range [-1, 1]')
 
         # Compute AI moves
         if action is None:

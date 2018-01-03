@@ -27,8 +27,12 @@ def load_sprites():
     sprites['top_mallet']    = pygame.image.load(dir_path + '/sprites/mallet/red_0.png')
     sprites['bottom_mallet'] = pygame.image.load(dir_path + '/sprites/mallet/robot.png')
     
-    sprites['arm'] = pygame.transform.flip(random_sprite_from_dir(dir_path + '/sprites/arm/'), False, True)
-    return sprites
+
+    dominant_arm = 'left' if np.random.randint(2) else 'right'
+    arm_dir = '/sprites/arm/' + dominant_arm + '/'
+
+    sprites['arm'] = pygame.transform.flip(random_sprite_from_dir(dir_path + arm_dir), False, True)
+    return sprites, dominant_arm
 
 def blit_puck(game, puck):
     # TODO: Refactor using loops
