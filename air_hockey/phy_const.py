@@ -14,3 +14,5 @@ puck_mallet_restitution   = 0.9
 
 mallet_wall_restitution   = 0.3
 puck_wall_restitution     = 0.95
+
+max_distance = 600

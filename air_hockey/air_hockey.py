@@ -12,6 +12,8 @@ from air_hockey.line import Line
 from air_hockey.score import Score
 from air_hockey.game_info import GameInfo
 from air_hockey.sprite_utils import load_sprites, blit_puck
+import air_hockey.vector as V
+import air_hockey.phy_const as P
 
 class AirHockey(object):
     def __init__(self, dim=Dimensions(), video_file=None):
@@ -80,6 +82,7 @@ class AirHockey(object):
         self.frame = np.zeros((self.dim.width, self.dim.height, 3), dtype=np.uint8)
         self.cropped_frame = np.zeros((self.dim.height-2*self.dim.vertical_margin, self.dim.width, 3), dtype=np.uint8)
         self.info = GameInfo(self.cropped_frame)
+        self.distance = P.max_distance
 
         self.reset()
 
@@ -184,6 +187,15 @@ class AirHockey(object):
         for body in self.bodies:
             for border in body.borders:
                 Collision.circle_line(body, border)
+
+        self.info.puck_is_at_the_bottom = self.puck.position[1] > self.dim.center[1]
+
+        if self.info.puck_is_at_the_bottom:
+            distance = V.magnitude(self.puck.position - self.bottom_mallet.position)
+            self.info.distance_decreased = distance < self.distance
+            self.distance = distance
+        else:
+            self.distance = P.max_distance
 
         self.info.scored = self.score.update(self.puck)
         if self.info.scored is not None:

@@ -25,15 +25,8 @@ class Collision(object):
         impulse = delta_velocity * total_inverse_mass # FIXED BUG : Textbook had '/' instead of '*'
         impulse_per_inverse_mass = normal * impulse
 
-        if inverse_mass_0 == inverse_mass_1:
-            new_velocity_0 = velocity_0 + impulse_per_inverse_mass *  inverse_mass_0
-            new_velocity_1 = velocity_1 + impulse_per_inverse_mass * -inverse_mass_1
-        elif inverse_mass_0 < inverse_mass_1:
-            new_velocity_0 = np.zeros(2, dtype=np.float32)
-            new_velocity_1 = velocity_1 + impulse_per_inverse_mass * -inverse_mass_1
-        else:
-            new_velocity_0 = velocity_0 + impulse_per_inverse_mass *  inverse_mass_0
-            new_velocity_1 = np.zeros(2, dtype=np.float32)
+        new_velocity_0 = velocity_0 + impulse_per_inverse_mass *  inverse_mass_0
+        new_velocity_1 = velocity_1 + impulse_per_inverse_mass * -inverse_mass_1
 
         bodies[0].set_velocity(new_velocity_0)
         bodies[1].set_velocity(new_velocity_1)
