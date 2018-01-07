@@ -8,25 +8,24 @@ from PIL import Image
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 def load_sprites():
-    
+
     sprites = {}
-    
+
     # Diversify the data
     def random_sprite_from_dir(dir_name):
         pngs = [name for name in os.listdir(dir_name) if 'png' in name]
         # Randomly select one
         png = pngs[np.random.randint(len(pngs))]
         return pygame.image.load(dir_name + png)
-    
+
     sprites['table'] = random_sprite_from_dir(dir_path + '/sprites/table/')
-        
+
     sprites['puck']        = pygame.image.load(dir_path + '/sprites/puck/red.png')
     sprites['puck_top']    = [pygame.image.load(dir_path + '/sprites/puck/top_{}.png'.format(i))    for i in range(7)]
     sprites['puck_bottom'] = [pygame.image.load(dir_path + '/sprites/puck/bottom_{}.png'.format(i)) for i in range(7)]
-    
+
     sprites['top_mallet']    = pygame.image.load(dir_path + '/sprites/mallet/red_0.png')
     sprites['bottom_mallet'] = pygame.image.load(dir_path + '/sprites/mallet/robot.png')
-    
 
     dominant_arm = 'left' if np.random.randint(2) else 'right'
     arm_dir = '/sprites/arm/' + dominant_arm + '/'
@@ -35,7 +34,7 @@ def load_sprites():
     return sprites, dominant_arm
 
 def blit_puck(game, puck):
-    # TODO: Refactor using loops
+    # TODO: Refactor
     # Draw the puck based on its position near the goal
     if game.dim.rink_top + game.dim.puck_radius <= puck[1] <= game.dim.rink_bottom - game.dim.puck_radius:
         game.screen.blit(game.sprites['puck'], puck - game.dim.puck_radius)
@@ -70,13 +69,13 @@ def blit_puck(game, puck):
         elif puck[1] <= game.dim.rink_bottom + game.dim.puck_radius:
             game.screen.blit(game.sprites['puck_bottom'][0], puck - game.dim.puck_radius)
 
-# Generate sprites that will simulate the puck going inside the goal area
 def generate_puck_sprites():
+    ''' Utility function to generate sprites that will simulate the puck going inside the goal area '''
 
     image = Image.open('sprites/puck.png')
     image = image.convert('RGBA')
     original_data = np.array(image)
-    
+
     step = 0.125
     for ratio in np.arange(step, 1.0, step):
         data = np.copy(original_data)
@@ -86,4 +85,3 @@ def generate_puck_sprites():
         data = data[::-1, :, :]
         image = Image.fromarray(data)
         image.save('sprites/puck/top_{}.png'.format(int(ratio*8-1)))
-    

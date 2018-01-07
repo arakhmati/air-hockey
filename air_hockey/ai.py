@@ -9,7 +9,7 @@ class AI(object):
         self.mode = mode
         self.dim = dim
         self._force = np.zeros(2, dtype=np.float32)
-        
+
     def intersects(self, origin, direction, line):
         origin = np.array(origin, dtype=np.float32)
         direction = np.array(direction, dtype=np.float32)
@@ -25,16 +25,16 @@ class AI(object):
         if t1 >= 0.0 and t2 >= 0.0 and t2 <= 1.0:
             return [origin + t1 * direction]
         return None
-    
+
     def move(self):
-                
+
         px, py = self.mallet.position
         vx, vy = self.mallet.get_velocity()
-        
+
         puck = self.puck
         puck_px, puck_py = self.puck.position
         puck_vx, puck_vy = self.puck.get_velocity()
-            
+
         if self.mode is 'top':
             intersects = self.intersects((puck_px, puck_py), (puck_vx, puck_vy), [self.dim.post_top_left, self.dim.post_top_right])
             if intersects is not None:
@@ -47,12 +47,12 @@ class AI(object):
                 goal_px, goal_py = intersects[0]
             else:
                 goal_px, goal_py = (self.dim.center[0], self.dim.rink_bottom)
-            
+
         if self.mode is 'top':
             reachable = self.dim.rink_top <= puck_py <=  self.dim.center[1]
         elif self.mode == 'bottom':
             reachable = self.dim.center[1] <= puck_py <=  self.dim.rink_bottom
-               
+
         x, y = 0, 0
         if not reachable:
             x = np.random.randint(-1, 2)
@@ -60,11 +60,11 @@ class AI(object):
             if   x == -1 and px < self.dim.rink_left  + self.mallet.radius + self.dim.goalpost_length//2: x =  1
             elif x ==  1 and px > self.dim.rink_right - self.mallet.radius - self.dim.goalpost_length//2: x = -1
             if self.mode is 'top':
-                if y == 1 and py > (self.dim.center[1] - self.dim.goalpost_length): y = -1  
+                if y == 1 and py > (self.dim.center[1] - self.dim.goalpost_length): y = -1
             elif self.mode == 'bottom':
                 if y == -1 and py < (self.dim.center[1] + self.dim.goalpost_length): y = 1
 #            print('{:15} {:4d} {:4d}'.format('not reachable', x, y))
-            
+
         else:
             if puck_vy <= 0:
                 if puck_px < px: x = -1
@@ -73,7 +73,7 @@ class AI(object):
                 if puck_py > py: y = 1
 #                print('{:15} {:4d} {:4d}'.format('stationary', x, y))
             else:
-                too_fast = V.magnitude(puck.get_velocity()) > 0.3*P.puck_maximum_speed 
+                too_fast = V.magnitude(puck.get_velocity()) > 0.8*P.puck_maximum_speed
                 if too_fast:
                     def save_goal(goal, p):
                         diff = goal - p
@@ -89,6 +89,6 @@ class AI(object):
                     if puck_py < py: y = -1
                     if puck_py > py: y = 1
 #                    print('{:15} {:4d} {:4d}'.format('slow', x, y))
-                        
+
         self._force[:] = x, y
         return self._force
