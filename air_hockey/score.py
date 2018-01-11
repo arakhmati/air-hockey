@@ -18,19 +18,14 @@ class Score(object):
         scored = None
         if y < self.dim.top_goal:
             self._score['bottom'] += 1
-            puck.default_position[:] = self.dim.puck_default_position_bottom
             scored = 'bottom'
         elif y > self.dim.bottom_goal:
             self._score['top'] += 1
-            puck.default_position[:] = self.dim.puck_default_position_top
             scored = 'top'
 
         if not (self.dim.rink_left < x < self.dim.rink_right):
-            if np.random.randint(2):
-                puck.default_position[:] = self.dim.puck_default_position_top
-            else:
-                puck.default_position[:] = self.dim.puck_default_position_bottom
             scored = 'out_of_bounds'
+
         return scored
 
     def __repr__(self):

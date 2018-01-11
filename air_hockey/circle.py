@@ -9,8 +9,6 @@ class Circle(ABC):
         self._velocity = np.zeros(2, dtype=np.float32)
         self.maximum_speed = maximum_speed
 
-        self.default_position = np.copy(self.position)
-
         if mass == 0.0:
             raise ValueError('Mass cannot be zero')
         self._inverse_mass = 1/float(mass)
@@ -49,9 +47,9 @@ class Circle(ABC):
         self.set_velocity(velocity)
         self.position += self._velocity * dt
 
-    def reset(self):
+    def reset(self, dim, top, bottom):
         self.clear_accumulators()
-        self.position[:] = self.default_position
+        self.position[:] = dim.random_position(self, top, bottom)
         self._velocity[:] = 0
 
 class Puck(Circle):

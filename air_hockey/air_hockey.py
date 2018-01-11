@@ -87,7 +87,7 @@ class AirHockey(object):
         self.reset()
 
 
-    def _draw(self, puck, top_mallet, bottom_mallet, debug=False):
+    def _draw(self, puck, top_mallet, bottom_mallet, debug=False, draw_arm=True):
         self.screen.blit(self.sprites['table'], [0,0])
         self.screen.blit(self.sprites['top_mallet'],    top_mallet - self.dim.mallet_radius)
         self.screen.blit(self.sprites['bottom_mallet'], bottom_mallet - self.dim.mallet_radius)
@@ -100,7 +100,8 @@ class AirHockey(object):
             x_offset = self.dim.mallet_radius
         else:
             x_offset = self.sprites['arm'].get_size()[0] - self.dim.mallet_radius
-        self.screen.blit(self.sprites['arm'], top_mallet - np.array((x_offset, y_offset), dtype=np.float32))
+        if draw_arm:
+            self.screen.blit(self.sprites['arm'], top_mallet - np.array((x_offset, y_offset), dtype=np.float32))
 
         # Draw robot that controls bottom mallet
         pygame.draw.line(self.screen, (184,184,184),
@@ -114,7 +115,7 @@ class AirHockey(object):
             for line in self.borders:
                 pygame.draw.line(self.screen, (0, 255, 255), line.p2, line.p1, 6)
 
-    def _render(self, debug=False):
+    def _render(self, debug=False, draw_arm=True):
         self._draw(self.puck.position, self.top_mallet.position, self.bottom_mallet.position, debug)
         self.screen.blit(self.font.render('%4d' % self.score.get_top(),    1, (200, 0, 0)), (0, 30))
         self.screen.blit(self.font.render('%4d' % self.score.get_bottom(), 1, (0, 200, 0)), (0, self.dim.rink_bottom+30))
@@ -128,8 +129,13 @@ class AirHockey(object):
         if reset_score:
             self.score.reset()
 
-        for body in self.bodies:
-            body.reset()
+        self.puck.reset(self.dim, self.dim.rink_top, self.dim.rink_bottom)
+        self.top_mallet.reset(self.dim, self.dim.rink_top, self.dim.center[1])
+        self.bottom_mallet.reset(self.dim, self.dim.center[1], self.dim.rink_bottom)
+
+        # Resolve possible interpenetration
+        Collision.circle_circle([self.puck, self.top_mallet])
+        Collision.circle_circle([self.top_mallet, self.bottom_mallet])
 
         self.sprites, self.dominant_arm = load_sprites()
 
@@ -137,7 +143,9 @@ class AirHockey(object):
 
         return self.info
 
-    def step(self, action=None, adversarial_action=None, dt=1, debug=False):
+    def step(self, action=None, adversarial_action=None, debug=False, draw_arm=True):
+
+        dt = np.random.ranf() + 1 # dt is randomly in interval [1, 2)
 
         if action is not None:
             if not isinstance(action, np.ndarray):
@@ -199,7 +207,7 @@ class AirHockey(object):
 
         self.info.scored = self.score.update(self.puck)
         if self.info.scored is not None:
-            for body in self.bodies: body.reset()
+            self.reset()
 
         self._render(debug)
 
