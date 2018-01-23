@@ -81,7 +81,9 @@ class Collision(object):
         closest_point[:] = cx, cy
 
         distance = V.magnitude(body.position - closest_point)
-        if distance < body.radius:
+        
+        collided = distance < body.radius
+        if collided:
 
             # Resolve interpenetration
             orthogonal_vector = relative_position - projected_vector
@@ -93,4 +95,4 @@ class Collision(object):
             velocity = body.get_velocity() - line.normal * body.get_velocity().dot(line.normal) * 2 * body.wall_restitution
             body.set_velocity(velocity)
 
-        return closest_point
+        return collided

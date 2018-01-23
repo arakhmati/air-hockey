@@ -8,7 +8,8 @@ class GameInfo(object):
                  scored=None,
                  puck_was_hit=False,
                  puck_is_at_the_bottom=False,
-                 distance_decreased=False):
+                 distance_decreased=False,
+                 hit_the_border=False):
         
         self.frame = np.copy(frame)
         
@@ -26,3 +27,4 @@ class GameInfo(object):
         self.scored = scored
         self.puck_is_at_the_bottom = puck_is_at_the_bottom
         self.distance_decreased = distance_decreased
+        self.hit_the_border = hit_the_border

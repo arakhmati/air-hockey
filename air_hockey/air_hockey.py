@@ -125,9 +125,8 @@ class AirHockey(object):
         self.frame[:] = pygame.surfarray.array3d(self.screen)
         self.cropped_frame[:] = self.frame[:, self.dim.vertical_margin:-self.dim.vertical_margin, :].transpose((1,0,2))
 
-    def reset(self, reset_score=False):
-        if reset_score:
-            self.score.reset()
+    def reset(self, scored=False, puck_was_hit=False, puck_is_at_the_bottom=False,
+                        distance_decreased=False, hit_the_border=False):
 
         self.puck.reset(self.dim, self.dim.rink_top, self.dim.rink_bottom)
         self.top_mallet.reset(self.dim, self.dim.rink_top, self.dim.center[1])
@@ -141,7 +140,9 @@ class AirHockey(object):
 
         self._render()
 
-        return GameInfo(self.cropped_frame)
+        return GameInfo(self.cropped_frame, scored=scored,
+                        puck_was_hit=puck_was_hit, puck_is_at_the_bottom=puck_is_at_the_bottom,
+                        distance_decreased=distance_decreased, hit_the_border=hit_the_border)
 
     def step(self, action=None, adversarial_action=None, debug=False, draw_arm=True):
 
@@ -172,41 +173,50 @@ class AirHockey(object):
         # Update forces
         self.top_ai_force.set_force(adversarial_action)
         self.bottom_ai_force.set_force(action)
+        
+        for _ in range(4):
 
-        # Clear forces from last frame
-        for body in self.bodies:
-            body.clear_accumulators()
-        self.forces.update_forces()
-
-        # Move bodies
-        for body in self.bodies:
-            body.integrate(dt)
-
-        # Check collisions between all possible pairs of bodies
-        Collision.circle_circle([self.puck, self.top_mallet])
-        Collision.circle_circle([self.top_mallet, self.bottom_mallet])
-        puck_was_hit = Collision.circle_circle([self.puck, self.bottom_mallet])
-
-        # Make sure all bodies are within their borders
-        for body in self.bodies:
-            for border in body.borders:
-                Collision.circle_line(body, border)
-
-        puck_is_at_the_bottom = self.puck.position[1] > self.dim.center[1]
-
-        distance_decreased = False
-        if puck_is_at_the_bottom:
-            distance = V.magnitude(self.puck.position - self.bottom_mallet.position)
-            distance_decreased = distance < self.distance
-            self.distance = distance
-        else:
-            self.distance = P.max_distance
-
-        scored = self.score.update(self.puck)
-        if scored is not None:
-            self.reset()
-
-        self._render(debug)
+            # Clear forces from last frame
+            for body in self.bodies:
+                body.clear_accumulators()
+            self.forces.update_forces()
+    
+            # Move bodies
+            for body in self.bodies:
+                body.integrate(dt)
+    
+            # Check collisions between all possible pairs of bodies
+            Collision.circle_circle([self.puck, self.top_mallet])
+            Collision.circle_circle([self.top_mallet, self.bottom_mallet])
+            puck_was_hit = Collision.circle_circle([self.puck, self.bottom_mallet])
+    
+            # Make sure all bodies are within their borders
+            collided = [False, False, False]
+            for i, body in enumerate(self.bodies):
+                for border in body.borders:
+                    if (Collision.circle_line(body, border)):
+                        collided[i] = True
+            hit_the_border = collided[2]
+    
+            puck_is_at_the_bottom = self.puck.position[1] > self.dim.center[1]
+    
+            distance_decreased = False
+            if puck_is_at_the_bottom:
+                distance = V.magnitude(self.puck.position - self.bottom_mallet.position)
+                distance_decreased = distance < self.distance
+                self.distance = distance
+            else:
+                self.distance = P.max_distance
+    
+            scored = self.score.update(self.puck)
+            if scored is not None:
+                return self.reset(scored,
+                                  puck_was_hit,
+                                  puck_is_at_the_bottom,
+                                  distance_decreased,
+                                  hit_the_border)
+    
+            self._render(debug)
 
         return GameInfo(self.cropped_frame,
                         action,
@@ -214,4 +224,5 @@ class AirHockey(object):
                         scored,
                         puck_was_hit,
                         puck_is_at_the_bottom,
-                        distance_decreased)
+                        distance_decreased,
+                        hit_the_border)
