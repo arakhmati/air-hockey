@@ -144,37 +144,37 @@ class AirHockey(object):
                         puck_was_hit=puck_was_hit, puck_is_at_the_bottom=puck_is_at_the_bottom,
                         distance_decreased=distance_decreased, hit_the_border=hit_the_border)
 
-    def step(self, action=None, adversarial_action=None, debug=False, draw_arm=True):
+    def step(self, robot_action=None, human_action=None, debug=False, draw_arm=True, n_steps=4):
 
         dt = np.random.ranf() + 1 # dt is randomly in interval [1, 2)
 
-        if action is not None:
-            if not isinstance(action, np.ndarray):
+        if robot_action is not None:
+            if not isinstance(robot_action, np.ndarray):
                 raise Exception('Action is supposed to be a numpy array')
-            elif action.shape[0] != 2:
+            elif robot_action.shape[0] != 2:
                 raise Exception('Action array can only have 2 values (x and y)')
-            elif action.min() < -1 or action.max() > 1:
+            elif robot_action.min() < -1 or robot_action.max() > 1:
                 raise Exception('Values of x and y have to be in range [-1, 1]')
 
-        if adversarial_action is not None:
-            if not isinstance(adversarial_action, np.ndarray):
+        if human_action is not None:
+            if not isinstance(human_action, np.ndarray):
                 raise Exception('Adversarial action is supposed to be a numpy array')
-            elif adversarial_action.shape[0] != 2:
+            elif human_action.shape[0] != 2:
                 raise Exception('Adversarial action array can only have 2 values (x and y)')
-            elif adversarial_action.min() < -1 or adversarial_action.max() > 1:
+            elif human_action.min() < -1 or human_action.max() > 1:
                 raise Exception('Adversarial values of x and y have to be in range [-1, 1]')
 
         # Compute AI moves
-        if action is None:
-            action = self.bottom_ai.move()
-        if adversarial_action is None:
-            adversarial_action = self.top_ai.move()
+        if robot_action is None:
+            robot_action = self.bottom_ai.move()
+        if human_action is None:
+            human_action = self.top_ai.move()
 
         # Update forces
-        self.top_ai_force.set_force(adversarial_action)
-        self.bottom_ai_force.set_force(action)
+        self.top_ai_force.set_force(human_action)
+        self.bottom_ai_force.set_force(robot_action)
         
-        for _ in range(4):
+        for _ in range(n_steps):
 
             # Clear forces from last frame
             for body in self.bodies:
@@ -219,8 +219,8 @@ class AirHockey(object):
             self._render(debug)
 
         return GameInfo(self.cropped_frame,
-                        action,
-                        adversarial_action,
+                        robot_action,
+                        human_action,
                         scored,
                         puck_was_hit,
                         puck_is_at_the_bottom,
