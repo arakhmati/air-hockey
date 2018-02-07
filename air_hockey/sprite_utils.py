@@ -15,7 +15,7 @@ def load_sprites():
     def random_sprite_from_dir(dir_name):
         pngs = [name for name in os.listdir(dir_name) if 'png' in name]
         # Randomly select one
-        png = pngs[1]#np.random.randint(len(pngs))]
+        png = pngs[np.random.randint(len(pngs))]
         return pygame.image.load(dir_name + png)
 
     sprites['table'] = random_sprite_from_dir(dir_path + '/sprites/table/')
@@ -27,7 +27,7 @@ def load_sprites():
     sprites['top_mallet']    = pygame.image.load(dir_path + '/sprites/mallet/red_0.png')
     sprites['bottom_mallet'] = pygame.image.load(dir_path + '/sprites/mallet/robot.png')
 
-    dominant_arm = 'right' # 'left' if np.random.randint(2) else 'right'
+    dominant_arm = 'left' if np.random.randint(2) else 'right'
     arm_dir = '/sprites/arm/' + dominant_arm + '/'
 
     sprites['arm'] = pygame.transform.flip(random_sprite_from_dir(dir_path + arm_dir), False, True)

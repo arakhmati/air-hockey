@@ -1,6 +1,6 @@
 force_multiplier = 3
 
-mallet_maximum_speed = 10
+mallet_maximum_speed = 6
 puck_maximum_speed   = 15
 
 puck_mass   = 0.1

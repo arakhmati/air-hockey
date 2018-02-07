@@ -55,15 +55,17 @@ class AI(object):
 
         x, y = 0, 0
         if not reachable:
-            x, y = 0, 0
-#            x = np.random.randint(-1, 2)
-#            y = np.random.randint(-1, 2)
-#            if   x == -1 and px < self.dim.rink_left  + self.mallet.radius + self.dim.goalpost_length//2: x =  1
-#            elif x ==  1 and px > self.dim.rink_right - self.mallet.radius - self.dim.goalpost_length//2: x = -1
-#            if self.mode is 'top':
-#                if y == 1 and py > (self.dim.center[1] - self.dim.goalpost_length): y = -1
-#            elif self.mode == 'bottom':
-#                if y == -1 and py < (self.dim.center[1] + self.dim.goalpost_length): y = 1
+            if self.mode is 'top':
+                target_px, target_py = (self.dim.center[0], self.dim.rink_top)
+            elif self.mode == 'bottom':
+                target_px, target_py = (self.dim.center[0], self.dim.rink_bottom)
+            def defend_goal(goal, p):
+                diff = goal - p
+                if abs(diff) < 40: return  0
+                elif diff > 0:    return  1
+                else:             return -1
+            x = defend_goal(target_px, px)
+            y = defend_goal(target_py, py)
 #            print('{:15} {:4d} {:4d}'.format('not reachable', x, y))
 
         else:
