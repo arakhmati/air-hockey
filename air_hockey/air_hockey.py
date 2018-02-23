@@ -203,16 +203,18 @@ class AirHockey(object):
 
         # Compute AI moves
         if robot_action is None:
-            robot_action = self.bottom_ai.move()
+            if use_object['puck']:
+                robot_action = self.bottom_ai.move()
+            else:
+                robot_action = [0, 0]
         if human_action is None:
             if use_object['arm'] and use_object['top_mallet']:
                 human_action = self.top_ai.move()
+            elif not use_object['puck']:
+                human_action = [0, 0]
             else:
                 human_action = [0, 0]
                 
-        if not use_object['puck']:
-            robot_action = [0, 0]
-            human_action = [0, 0]
 
         # Update forces
         self.top_ai_force.set_force(human_action)
