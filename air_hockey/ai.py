@@ -40,13 +40,13 @@ class AI(object):
             if intersects is not None:
                 goal_px, goal_py = intersects[0]
             else:
-                goal_px, goal_py = (self.dim.center[0], self.dim.rink_top)
+                goal_px, goal_py = (self.dim.center[0], self.dim.rink_top + 20)
         elif self.mode == 'bottom':
             intersects = self.intersects((puck_px, puck_py), (puck_vx, puck_vy), [self.dim.post_bottom_left, self.dim.post_bottom_right])
             if intersects is not None:
                 goal_px, goal_py = intersects[0]
             else:
-                goal_px, goal_py = (self.dim.center[0], self.dim.rink_bottom)
+                goal_px, goal_py = (self.dim.center[0], self.dim.rink_bottom - 20)
 
         if self.mode is 'top':
             reachable = self.dim.rink_top <= puck_py <=  self.dim.center[1]

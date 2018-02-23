@@ -2,8 +2,16 @@ import numpy as np
 
 class Dimensions(object):
 
-    def __init__(self, width=450, height=800, vertical_margin=85, horizontal_margin=20,
-                 goalpost_length=160, arc_radius=130, mallet_radius=27, bezier_ratio=0.3):
+    def __init__(self,
+                 width=450,
+                 height=800,
+                 vertical_margin=85,
+                 horizontal_margin=20,
+                 goalpost_length=160,
+                 arc_radius=130,
+                 mallet_radius=27,
+                 target_radius=55,
+                 bezier_ratio=0.3):
         ############ Parameters ############
         self.width = width
         self.height = height
@@ -14,9 +22,10 @@ class Dimensions(object):
         self.goalpost_length = goalpost_length
 
         self.arc_radius = arc_radius
-
+        
         self.mallet_radius = mallet_radius
         self.puck_radius = int(self.mallet_radius / 68 * 63)
+        self.target_radius = target_radius
 
         self.bezier_ratio = bezier_ratio
 

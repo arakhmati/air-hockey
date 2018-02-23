@@ -43,7 +43,7 @@ class Collision(object):
         bodies[1].position += disposition_per_inverse_mass * -bodies[1].get_inverse_mass()
 
     @staticmethod
-    def circle_circle(bodies):
+    def circle_circle(bodies, resolve=True):
         restitution = max(bodies[0].body_restitution, bodies[1].body_restitution)
 
         position_0   = bodies[0].position
@@ -52,13 +52,15 @@ class Collision(object):
 
         direction = position_0 - position_1
         distance = V.magnitude(direction)
-        if distance <= 0.0 or distance >= (total_radius): return False
+        if distance <= 0.0 or distance >= (total_radius):
+            return False
 
         normal      = V.normalize(direction)
         penetration = total_radius - distance
 
-        Collision._resolve_circle_circle_velocity(bodies, normal, restitution)
-        Collision._resolve_circle_circle_interpenetration(bodies, normal, penetration)
+        if resolve:
+            Collision._resolve_circle_circle_velocity(bodies, normal, restitution)
+            Collision._resolve_circle_circle_interpenetration(bodies, normal, penetration)
 
         return True
 

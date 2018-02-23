@@ -4,7 +4,7 @@ import cv2
 import os
 
 from air_hockey.dimensions import Dimensions
-from air_hockey.circle import Puck, Mallet
+from air_hockey.circle import Puck, Mallet, Target
 from air_hockey.force import ForceRegistry, ControlledForce
 from air_hockey.collision import Collision
 from air_hockey.ai import AI
@@ -14,6 +14,11 @@ from air_hockey.game_info import GameInfo
 from air_hockey.sprite_utils import load_sprites, blit_puck
 import air_hockey.vector as V
 import air_hockey.phy_const as P
+
+
+default_use_object={'arm': True,
+                    'puck': True,
+                    'top_mallet': True}
 
 class AirHockey(object):
     def __init__(self, dim=Dimensions(), video_file=None):
@@ -52,6 +57,8 @@ class AirHockey(object):
                           [center_line, bottom_wall, left_wall, right_wall] + bottom_left_corner + bottom_right_corner)
 
         self.bodies = [self.puck, self.top_mallet, self.bottom_mallet]
+        
+        self.bottom_target = Target([self.dim.center[0], self.dim.rink_bottom - 55], self.dim.target_radius)
 
         self.top_ai    = AI(self.top_mallet,    self.puck, mode='top',    dim=self.dim)
         self.bottom_ai = AI(self.bottom_mallet, self.puck, mode='bottom', dim=self.dim)
@@ -87,26 +94,40 @@ class AirHockey(object):
         self.reset()
 
 
-    def _draw(self, puck, top_mallet, bottom_mallet, debug=False, draw_arm=True):
+    def _draw(self, puck, top_mallet, bottom_mallet, debug=False, use_object=default_use_object):
+        
+        draw_arm = use_object['arm']
+        draw_puck = use_object['puck']
+        draw_top_mallet = use_object['top_mallet']
+        
         self.screen.blit(self.sprites['table'], [0,0])
-        self.screen.blit(self.sprites['top_mallet'],    top_mallet - self.dim.mallet_radius)
+        
+        # Draw dark blue target to which the robot mallet should when the puck is on the opposite side
+        pygame.draw.circle(self.screen, (0,0,139), self.bottom_target.position, self.bottom_target.radius)
+        
+        if draw_top_mallet:
+            self.screen.blit(self.sprites['top_mallet'],    top_mallet - self.dim.mallet_radius)
+        
         self.screen.blit(self.sprites['bottom_mallet'], bottom_mallet - self.dim.mallet_radius)
 
-        blit_puck(self, puck)
+        if draw_puck:
+            blit_puck(self, puck)
 
-        # Draw arm that controls top mallet
-        y_offset = self.sprites['arm'].get_size()[1] - self.dim.mallet_radius
-        if self.dominant_arm == 'right':
-            x_offset = self.dim.mallet_radius
-        else:
-            x_offset = self.sprites['arm'].get_size()[0] - self.dim.mallet_radius
         if draw_arm:
+            # Draw arm that controls top mallet
+            y_offset = self.sprites['arm'].get_size()[1] - self.dim.mallet_radius
+            if self.dominant_arm == 'right':
+                x_offset = self.dim.mallet_radius
+            else:
+                x_offset = self.sprites['arm'].get_size()[0] - self.dim.mallet_radius
             self.screen.blit(self.sprites['arm'], top_mallet - np.array((x_offset, y_offset), dtype=np.float32))
 
         # Draw robot that controls bottom mallet
         pygame.draw.line(self.screen, (184,184,184),
                          [self.dim.table_left, bottom_mallet[1]],
                          [self.dim.table_right, bottom_mallet[1]], 6)
+        
+        
 
         if self.writer:
             self.writer.write(self.cropped_frame[:,:,::-1])
@@ -115,8 +136,8 @@ class AirHockey(object):
             for line in self.borders:
                 pygame.draw.line(self.screen, (0, 255, 255), line.p2, line.p1, 6)
 
-    def _render(self, debug=False, draw_arm=True):
-        self._draw(self.puck.position, self.top_mallet.position, self.bottom_mallet.position, debug)
+    def _render(self, debug=False, use_object=default_use_object):
+        self._draw(self.puck.position, self.top_mallet.position, self.bottom_mallet.position, debug, use_object)
         self.screen.blit(self.font.render('%4d' % self.score.get_top(),    1, (200, 0, 0)), (0, 30))
         self.screen.blit(self.font.render('%4d' % self.score.get_bottom(), 1, (0, 200, 0)), (0, self.dim.rink_bottom+30))
 
@@ -125,8 +146,13 @@ class AirHockey(object):
         self.frame[:] = pygame.surfarray.array3d(self.screen)
         self.cropped_frame[:] = self.frame[:, self.dim.vertical_margin:-self.dim.vertical_margin, :].transpose((1,0,2))
 
-    def reset(self, scored=False, puck_was_hit=False, puck_is_at_the_bottom=False,
-                        distance_decreased=False, hit_the_border=False):
+    def reset(self,
+              scored=False,
+              puck_was_hit=False,
+              puck_is_at_the_bottom=False,
+              distance_decreased=False,
+              hit_the_border=False,
+              use_object=default_use_object):
 
         self.puck.reset(self.dim, self.dim.rink_top, self.dim.rink_bottom)
         self.top_mallet.reset(self.dim, self.dim.rink_top, self.dim.center[1])
@@ -135,16 +161,27 @@ class AirHockey(object):
         # Resolve possible interpenetration
         Collision.circle_circle([self.puck, self.top_mallet])
         Collision.circle_circle([self.top_mallet, self.bottom_mallet])
+        
+        in_the_target = Collision.circle_circle([self.bottom_mallet, self.bottom_target], resolve=False)
 
         self.sprites, self.dominant_arm = load_sprites()
 
-        self._render()
+        self._render(use_object=use_object)
 
-        return GameInfo(self.cropped_frame, scored=scored,
-                        puck_was_hit=puck_was_hit, puck_is_at_the_bottom=puck_is_at_the_bottom,
-                        distance_decreased=distance_decreased, hit_the_border=hit_the_border)
+        return GameInfo(self.cropped_frame,
+                        scored=scored,
+                        puck_was_hit=puck_was_hit,
+                        puck_is_at_the_bottom=puck_is_at_the_bottom,
+                        distance_decreased=distance_decreased,
+                        hit_the_border=hit_the_border,
+                        in_the_target=in_the_target)
 
-    def step(self, robot_action=None, human_action=None, debug=False, draw_arm=True, n_steps=4):
+    def step(self,
+             robot_action=None,
+             human_action=None,
+             debug=False,
+             use_object=default_use_object,
+             n_steps=4):
 
         dt = np.random.ranf() + 1 # dt is randomly in interval [1, 2)
 
@@ -168,7 +205,14 @@ class AirHockey(object):
         if robot_action is None:
             robot_action = self.bottom_ai.move()
         if human_action is None:
-            human_action = self.top_ai.move()
+            if use_object['arm'] and use_object['top_mallet']:
+                human_action = self.top_ai.move()
+            else:
+                human_action = [0, 0]
+                
+        if not use_object['puck']:
+            robot_action = [0, 0]
+            human_action = [0, 0]
 
         # Update forces
         self.top_ai_force.set_force(human_action)
@@ -186,9 +230,17 @@ class AirHockey(object):
                 body.integrate(dt)
     
             # Check collisions between all possible pairs of bodies
-            Collision.circle_circle([self.puck, self.top_mallet])
+            
+            if use_object['arm'] or use_object['top_mallet']:
+                Collision.circle_circle([self.puck, self.top_mallet])
             Collision.circle_circle([self.top_mallet, self.bottom_mallet])
-            puck_was_hit = Collision.circle_circle([self.puck, self.bottom_mallet])
+            
+            if use_object['puck']:
+                puck_was_hit = Collision.circle_circle([self.puck, self.bottom_mallet])
+            else:
+                puck_was_hit = False
+            
+            in_the_target = Collision.circle_circle([self.bottom_mallet, self.bottom_target], resolve=False)
     
             # Make sure all bodies are within their borders
             collided = [False, False, False]
@@ -216,7 +268,7 @@ class AirHockey(object):
                                   distance_decreased,
                                   hit_the_border)
     
-            self._render(debug)
+            self._render(debug, use_object)
 
         return GameInfo(self.cropped_frame,
                         robot_action,
@@ -225,4 +277,5 @@ class AirHockey(object):
                         puck_was_hit,
                         puck_is_at_the_bottom,
                         distance_decreased,
-                        hit_the_border)
+                        hit_the_border,
+                        in_the_target)

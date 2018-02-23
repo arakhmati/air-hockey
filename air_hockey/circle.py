@@ -51,7 +51,11 @@ class Circle(ABC):
         self.clear_accumulators()
         self.position[:] = dim.random_position(self, top, bottom)
         self._velocity[:] = 0
-
+        
+class Target(Circle):
+    def __init__(self, position, radius):
+        super().__init__(position, radius, None, 1.0, 0, 0, 0, 0)
+        
 class Puck(Circle):
     def __init__(self, position, radius, borders):
         super().__init__(position, radius, borders, P.puck_mass,
