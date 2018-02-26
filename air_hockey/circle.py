@@ -65,3 +65,10 @@ class Mallet(Circle):
     def __init__(self, position, radius, borders):
         super().__init__(position, radius, borders, P.mallet_mass,
              P.mallet_maximum_speed, P.mallet_friction, P.puck_mallet_restitution, P.mallet_wall_restitution)
+
+    # updates position and velocity
+    def integrate(self, dt):
+        velocity = self.accumulated_forces
+        # velocity *= self.friction
+        self.set_velocity(velocity)
+        self.position += self._velocity * dt
