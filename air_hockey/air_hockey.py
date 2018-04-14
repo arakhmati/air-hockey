@@ -281,3 +281,4 @@ class AirHockey(object):
                         distance_decreased,
                         hit_the_border,
                         in_the_target)
+        
