@@ -10,8 +10,8 @@ class Collision(object):
         inverse_mass_0 = bodies[0].get_inverse_mass()
         inverse_mass_1 = bodies[1].get_inverse_mass()
 
-        relative_velocity  = velocity_0
-        relative_velocity -= velocity_1
+        relative_velocity  = velocity_0.copy()
+        relative_velocity -= velocity_1.copy()
         separating_velocity = relative_velocity.dot(normal)
         if separating_velocity >= 0.0: return
 
@@ -22,7 +22,7 @@ class Collision(object):
         total_inverse_mass  = inverse_mass_0
         total_inverse_mass += inverse_mass_1
 
-        impulse = delta_velocity * total_inverse_mass # FIXED BUG : Textbook had '/' instead of '*'
+        impulse = delta_velocity / total_inverse_mass
         impulse_per_inverse_mass = normal * impulse
 
         new_velocity_0 = velocity_0 + impulse_per_inverse_mass *  inverse_mass_0
